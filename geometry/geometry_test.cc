@@ -135,7 +135,7 @@ TEST(AABB, SweepIntersects2df_5) {
   EXPECT_NEAR(0.0, normal[1], 0.00001);
 }
 
-/*
+
 TEST(SPHERE, Intersects2dfWithSphere_1) {
   Sphere2df sphere1 = { {0.0, 0.0}, 1.0 };
   Sphere2df sphere2 = { {1.0, 1.0}, 0.5 };
@@ -149,9 +149,8 @@ TEST(SPHERE, Intersects2dfWithSphere_2) {
   
   EXPECT_FALSE( sphere1.intersects(sphere2) );
 }
-*/
 
-/*
+
 TEST(SPHERE, Intersects2dfWithRay_1) {
   Sphere2df sphere = { {0.0, 0.0}, 1.0 };
   Ray2df ray{ {-2.0, -3.0}, {1.0, 1.0} };
@@ -253,9 +252,7 @@ TEST(SPHERE, Intersects3dfWithRay_7) {
   EXPECT_TRUE( sphere.intersects(ray, context) );
 }
 
-*/
 
-/*
 TEST(SPHERE, Inside_1) {
   Sphere3df sphere = { {3.0f, 3.0f, 0.0f}, 3.0f };
   
@@ -267,7 +264,7 @@ TEST(SPHERE, NotInside_1) {
   
   EXPECT_FALSE( sphere.inside( Vector3df{-0.5f, 0.0f, 0.0f}) );
 }
-*/
+
 TEST(TRIANGLE, Intersects3dfWithRay_1) {
   Triangle3df triangle = { {0.0, 0.0, 0.0}, {0.0, 3.0, 0.0},{3.0, 0.0, 0.0}  };
   Ray3df ray{ {0.0, 0.0, 2.0}, {0.0, 0.0, -1.0} };

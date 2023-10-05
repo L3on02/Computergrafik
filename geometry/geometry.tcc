@@ -1,3 +1,4 @@
+#include "geometry.h"
 template <class FLOAT, size_t N>
 AxisAlignedBoundingBox<FLOAT, N>::AxisAlignedBoundingBox(Vector<FLOAT,N> center, Vector<FLOAT,N> half_edge_length)
   : center(center), half_edge_length(half_edge_length)
@@ -77,7 +78,7 @@ Sphere<FLOAT,N>::Sphere(Vector<FLOAT,N> center, FLOAT radius)
 // solution via
 // (g(t) - center )^2  = ( (ray.origin - center) + t ray.direction)^2 = r^2 
 // and abc-formula
-/*
+
 template <class FLOAT, size_t N>
 FLOAT Sphere<FLOAT,N>::intersects(const Ray<FLOAT, N> &ray) const {
   Vector<FLOAT,N> om = ray.origin - center;
@@ -110,7 +111,7 @@ bool Sphere<FLOAT,N>::intersects(const Ray<FLOAT, N> &ray, Intersection_Context<
   }
   return true;
 }
-*/
+
 template <class FLOAT, size_t N>
 Triangle<FLOAT, N>::Triangle(Vector<FLOAT, N> a, Vector<FLOAT, N> b, Vector<FLOAT, N> c, Vector<FLOAT, N> na, Vector<FLOAT, N> nb, Vector<FLOAT, N> nc)
  : a(a), b(b), c(c), na(na), nb(nb), nc(nc) { }
@@ -190,3 +191,15 @@ bool refract(FLOAT refraction_index, Vector<FLOAT, N> normal, Vector<FLOAT, N> d
    return true;
 }
 
+
+template <class FLOAT, size_t N>
+inline bool Sphere<FLOAT, N>::intersects(Sphere<FLOAT, N> sphere) const
+{
+    return ((this->center - sphere.center).length() < this->radius + sphere.radius);
+}
+
+template <class FLOAT, size_t N>
+inline bool Sphere<FLOAT, N>::inside(const Vector<FLOAT, N> p) const
+{
+    return (this->center - p).length() < this->radius;
+}
