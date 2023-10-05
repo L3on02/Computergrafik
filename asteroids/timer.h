@@ -2,7 +2,7 @@
 #define TIMER_H
 
 #include <functional>
-#include <SDL2/SDL.h> //sudo apt-get install libsdl2-dev
+#include <SDL2/SDL.h>
 
 #ifndef SDL_GetTicks64
 #define SDL_GetTicks64 SDL_GetTicks
