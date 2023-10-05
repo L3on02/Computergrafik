@@ -1,9 +1,8 @@
 #include <cassert>
-#include <iostream>
 #include "math.h"
 
 template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N>::Vector(std::initializer_list<FLOAT_TYPE> values) {
+Vector<FLOAT_TYPE, N>::Vector( std::initializer_list<FLOAT_TYPE> values ) {
   auto iterator = values.begin();
   for (size_t i = 0u; i < N; i++) {
     if ( iterator != values.end()) {
@@ -15,8 +14,8 @@ Vector<FLOAT_TYPE, N>::Vector(std::initializer_list<FLOAT_TYPE> values) {
 }
 
 template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N>::Vector(FLOAT_TYPE angle) {
-  *this = { static_cast<FLOAT_TYPE>(cos(angle)), static_cast<FLOAT_TYPE>(sin(angle)) };
+Vector<FLOAT_TYPE, N>::Vector(FLOAT_TYPE angle ) {
+  *this = { static_cast<FLOAT_TYPE>( cos(angle) ), static_cast<FLOAT_TYPE>(sin(angle)) };
 }
 
 template <class FLOAT_TYPE, size_t N>  
@@ -61,13 +60,11 @@ Vector<FLOAT_TYPE, N> operator*(FLOAT_TYPE scalar, Vector<FLOAT_TYPE, N> value) 
   return scalar_product;
 }
 
-
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> operator+(const Vector<FLOAT_TYPE, N> value, const Vector<FLOAT_TYPE, N> addend)
-{
-    Vector<FLOAT_TYPE, N> sum = value;
-    sum += addend;
-    return sum;
+template <class FLOAT_TYPE, size_t N>    
+Vector<FLOAT_TYPE, N> operator+(const Vector<FLOAT_TYPE, N> value, const Vector<FLOAT_TYPE, N> addend) {
+  Vector<FLOAT_TYPE, N> sum = value;
+  sum += addend;
+  return sum;
 }
 
 template <class FLOAT_TYPE, size_t N>    
@@ -75,15 +72,6 @@ Vector<FLOAT_TYPE, N> operator-(const Vector<FLOAT_TYPE, N> value, const Vector<
   Vector<FLOAT_TYPE, N> difference = value;
   difference -= minuend;
   return difference;
-}
-
-template <class F, size_t K>
-F operator*(Vector<F, K> vector1, const Vector<F, K> vector2) {
-  F sc_product;
-  for(int i = 0; i < K; i++) {
-    sc_product += vector1[i] * vector2[i];
-  }
-  return sc_product;
 }
 
 template <class FLOAT_TYPE, size_t N>  
@@ -105,23 +93,6 @@ Vector<FLOAT_TYPE, 3u> Vector<FLOAT_TYPE, N>::cross_product(const Vector<FLOAT_T
           this->vector[0] * v.vector[1] - this->vector[1] * v.vector[0] };
 }
 
-template <class FLOAT_TYPE, size_t N>
-inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::length() const
-{
-    return sqrt(square_of_length());
-}
-
-template <class FLOAT_TYPE, size_t N>
-inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::square_of_length() const
-{
-    FLOAT_TYPE length = 0;
-    for (int i = 0; i < N; i++)
-    {
-        length += vector[i] * vector[i];
-    }
-    return length;
-}
-
 template <class FLOAT_TYPE, size_t N>  
 void Vector<FLOAT_TYPE, N>::normalize() {
   *this /= length(); //  +/- INFINITY if length is (near to) zero
@@ -129,16 +100,41 @@ void Vector<FLOAT_TYPE, N>::normalize() {
 
 template <class FLOAT_TYPE, size_t N>  
 Vector<FLOAT_TYPE, N> Vector<FLOAT_TYPE, N>::get_reflective(Vector<FLOAT_TYPE, N> normal) const {
-  assert(0.99999 < normal.square_of_length() && normal.square_of_length()  < 1.000001);
-  Vector<FLOAT_TYPE, N> vec = *this - static_cast<FLOAT_TYPE>(2.0) * (*this * normal ) * normal;
-  std::cout << "Input: " << this->vector[0] << " " << this->vector[1] << " " << this->vector[2] << std::endl;
-  std::cout << "normal: " << normal[0] << " " << normal[1] << " " << normal[2] << std::endl;
-  std::cout << "Reflective: " << vec[0] << " " << vec[1] << " " << vec[2] << std::endl;
-  return vec;
+  assert(0.99999 < normal.square_of_length() && normal.square_of_length()  < 1.000001); 
+  return *this - static_cast<FLOAT_TYPE>(2.0) * (*this * normal ) * normal;
 }
 
 template <class FLOAT_TYPE, size_t N>
 FLOAT_TYPE Vector<FLOAT_TYPE, N>::angle(size_t axis_1, size_t axis_2) const {
   Vector<FLOAT_TYPE, N> normalized = (1.0f / length()) * *this;
   return atan2( normalized[axis_2], normalized[axis_1] );
+}
+
+// Vektorlänge
+template <class FLOAT_TYPE, size_t N>
+inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::length() const
+{
+    return sqrt(square_of_length());
+}
+
+// Quadratische Vektorlänge
+template <class FLOAT_TYPE, size_t N>
+inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::square_of_length() const
+{
+    FLOAT_TYPE length = 0.0;
+    for (size_t i = 0u; i < N; i++)
+    {
+        length += vector[i] * vector[i];
+    }
+    return length;
+}
+
+// Skalarprodukt
+template <class F, size_t K>
+F operator*(Vector<F, K> vector1, const Vector<F, K> vector2) {
+  F sc_product = 0.0;
+  for(int i = 0; i < K; i++) {
+    sc_product += vector1[i] * vector2[i];
+  }
+  return sc_product;
 }

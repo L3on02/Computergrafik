@@ -77,8 +77,6 @@ TEST(VECTOR, CopyConstructor) {
   EXPECT_NEAR(0.0, copy[1], 0.00001);
 }
 
-
-
 TEST(VECTOR, SquareOfLength1) {
   Vector2df vector = {2.0, 2.0};
   
@@ -182,7 +180,6 @@ TEST(VECTOR, Angle0) {
   EXPECT_NEAR(0.0f, vector.angle(0,1), 0.00001);
 }
 
-
 TEST(VECTOR, SumsTwoVectors) {
   Vector2df vector = {1.0, 0.0};
   Vector2df addend = {-2.0, 1.0};
@@ -253,7 +250,6 @@ TEST(VECTOR, ScalarAssignmentDivision) {
   EXPECT_NEAR(0.0, vector1[1], 0.00001);
 }
 
-
 TEST(VECTOR, ScalarVectorProduct1) {
   Vector2df vector1 = {1.0, 0.0};
   Vector2df vector2 = {0.0, 1.0};
@@ -296,7 +292,6 @@ TEST(VECTOR, ScalarVectorProduct3df_3) {
   
   EXPECT_NEAR(20.0, vector1 * vector2, 0.00001);
 }
-
 
 TEST(VECTOR, CrossVectorProduct1) {
   Vector3df vector1 = {1.0, 0.0, 0.0};

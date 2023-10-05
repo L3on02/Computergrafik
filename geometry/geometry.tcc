@@ -10,7 +10,7 @@ bool AxisAlignedBoundingBox<FLOAT, N>::intersects(AxisAlignedBoundingBox<FLOAT,N
   bool intersects = true;
   for (size_t i = 0; i < N; i++) {
     intersects &= (center[i] - half_edge_length[i] - aabb.half_edge_length[i] <= aabb.center[i]) 
-                     & (aabb.center[i] <= center[i] + half_edge_length[i] + aabb.half_edge_length[i]);
+                & (aabb.center[i] <= center[i] + half_edge_length[i] + aabb.half_edge_length[i]);
   }
   return intersects;
 }
