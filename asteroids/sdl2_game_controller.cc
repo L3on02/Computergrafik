@@ -50,6 +50,9 @@ void SDL2GameController::do_user_interactions() {
     if ( keys[SDL_SCANCODE_SPACE] ) {
       game.hyperspace();
     }
+    if( keys[SDL_SCANCODE_Q] ) {
+      quit = true;
+    }
   }
 }
 

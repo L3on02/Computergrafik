@@ -396,3 +396,27 @@ TEST(VECTOR, CrossVectorProduct7) {
 }
 
 }
+
+// eigene Tests
+TEST(VectorTest, Length) {
+  Vector<float, 3> v1 = {1.0f, 2.0f, 2.0f};
+  float length = v1.length();
+  EXPECT_FLOAT_EQ(length, 3.0f);
+}
+
+TEST(VectorTest, SquareOfLengthTest)
+{
+    Vector<float, 3> v1{1.0f, 2.0f, 3.0f};
+    EXPECT_FLOAT_EQ(v1.square_of_length(), 14.0f);
+
+    Vector<float, 4> v2{1.0f, 2.0f, 3.0f, 4.0f};
+    EXPECT_FLOAT_EQ(v2.square_of_length(), 30.0f);
+}
+
+TEST(VectorMultiplicationTest, MultiplicationOfTwoVectors) {
+  Vector<float, 3> vector1{1.0, 2.0, 3.0};
+  Vector<float, 3> vector2{4.0, 5.0, 6.0};
+  float expected_result = 32.0;
+  float actual_result = vector1 * vector2;
+  EXPECT_EQ(expected_result, actual_result);
+}

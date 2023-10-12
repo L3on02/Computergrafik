@@ -4,7 +4,7 @@
 
 
 void SDL2Renderer::renderSpaceship(Vector2df position, float angle) {
-    static std::array<SDL_Point, 6> ship_points{SDL_Point{-6, 3},
+    static std::array<SDL_Point, 12> ship_points{SDL_Point{-6, 3},
                                               SDL_Point{-6,-3},
                                               SDL_Point{-10,-6},
                                               SDL_Point{ 14, 0},
@@ -21,7 +21,9 @@ void SDL2Renderer::renderSpaceship(Vector2df position, float angle) {
     points[i].x = (cos_angle * x - sin_angle * y) + position[0];
     points[i].y = (sin_angle * x + cos_angle * y) + position[1];
   }
+  SDL_SetRenderDrawColor( renderer, 0x00, 0xBF, 0xFF, 0xFF);
   SDL_RenderDrawLines(renderer, points.data(), points.size());
+  SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
 }
 
@@ -39,7 +41,7 @@ void SDL2Renderer::render(Spaceship * ship) {
         points[i].x = (cos_angle * x - sin_angle * y) + ship->get_position()[0];
         points[i].y = (sin_angle * x + cos_angle * y) + ship->get_position()[1];
       }
-       SDL_RenderDrawLines(renderer, points.data(), points.size());
+      SDL_RenderDrawLines(renderer, points.data(), points.size());
     }
   renderSpaceship(ship->get_position(), ship->get_angle());  
   }
@@ -62,16 +64,20 @@ void SDL2Renderer::render(Saucer * saucer) {
     points[i].x = scale * x + position[0];
     points[i].y = scale * y + position[1];
   }
+  SDL_SetRenderDrawColor( renderer, 0xFF, 0x0, 0x0, 0x0 );
   SDL_RenderDrawLines(renderer, points.data(), points.size());
+  SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
 }
 
 
 void SDL2Renderer::render(Torpedo * torpedo) {
+    SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0x00, 0xFF );
   SDL_RenderDrawPoint(renderer, torpedo->get_position()[0], torpedo->get_position()[1]);
   SDL_RenderDrawPoint(renderer, torpedo->get_position()[0] + 1, torpedo->get_position()[1]);
   SDL_RenderDrawPoint(renderer, torpedo->get_position()[0], torpedo->get_position()[1] - 1);
   SDL_RenderDrawPoint(renderer, torpedo->get_position()[0], torpedo->get_position()[1] + 1);
   SDL_RenderDrawPoint(renderer, torpedo->get_position()[0] - 1, torpedo->get_position()[1]);
+    SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
 }
   
 void SDL2Renderer::render(Asteroid * asteroid) {
@@ -204,9 +210,9 @@ void SDL2Renderer::renderScore() {
       points[i].y = y +  4 * (digits[d] + i)->y;
     }
     x -= 20;
-//    SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0x00, 0xFF );
+    //SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0x00, 0xFF );
     SDL_RenderDrawLines(renderer, points.data(), size );
-//    SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
+    //SDL_SetRenderDrawColor( renderer, 0xFF, 0xFF, 0xFF, 0xFF );
     no_of_digits--;
   } while (no_of_digits > 0);
 }
