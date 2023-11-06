@@ -10,3 +10,4 @@
 !*.h
 !Makefile
 !.gitignore
+!CMakeLists.txt
