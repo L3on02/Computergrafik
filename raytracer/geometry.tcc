@@ -17,7 +17,7 @@ bool AxisAlignedBoundingBox<FLOAT, N>::intersects(AxisAlignedBoundingBox<FLOAT,N
 }
 
 template <class FLOAT, size_t N>
-bool AxisAlignedBoundingBox<FLOAT, N>::intersects(Ray<FLOAT,N> ray) const {
+bool AxisAlignedBoundingBox<FLOAT, N>::intersects(ray<FLOAT,N> ray) const {
     FLOAT tmin;
     FLOAT tmax;
     FLOAT tminimum = -INFINITY;
@@ -37,7 +37,7 @@ template <class FLOAT, size_t N>
 bool AxisAlignedBoundingBox<FLOAT, N>::intersects(AxisAlignedBoundingBox<FLOAT,N> aabb, Vector<FLOAT, N> direction) const {
   AxisAlignedBoundingBox<FLOAT,N> center_extended = AxisAlignedBoundingBox(center, half_edge_length + aabb.half_edge_length);
 
-  return center_extended.intersects( Ray<FLOAT, N>{ aabb.center, direction} );
+  return center_extended.intersects( ray<FLOAT, N>{ aabb.center, direction} );
 }
 
 template <class FLOAT, size_t N>
@@ -80,7 +80,7 @@ Sphere<FLOAT,N>::Sphere(Vector<FLOAT,N> center, FLOAT radius)
 // and abc-formula
 
 template <class FLOAT, size_t N>
-FLOAT Sphere<FLOAT,N>::intersects(const Ray<FLOAT, N> &ray) const {
+FLOAT Sphere<FLOAT,N>::intersects(const ray<FLOAT, N> &ray) const {
   Vector<FLOAT,N> om = ray.origin - center;
   FLOAT  a = ray.direction * ray.direction,
          b = 2.0 * (om * ray.direction),
@@ -97,7 +97,7 @@ FLOAT Sphere<FLOAT,N>::intersects(const Ray<FLOAT, N> &ray) const {
 }
 
 template <class FLOAT, size_t N>
-bool Sphere<FLOAT,N>::intersects(const Ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const {
+bool Sphere<FLOAT,N>::intersects(const ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const {
   FLOAT t = intersects(ray);
   if (t <= 0.0) {
     return false;
@@ -127,13 +127,13 @@ Triangle<FLOAT, N>::Triangle(Vector<FLOAT, N> a, Vector<FLOAT, N> b, Vector<FLOA
 
   
 template <class FLOAT, size_t N>
-bool Triangle<FLOAT, N>::intersects(const Ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const {
+bool Triangle<FLOAT, N>::intersects(const ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const {
   return intersects(ray, context.normal, context.intersection, context.u, context.v, context.t);
 }
 
 
 template <class FLOAT, size_t N>
-bool Triangle<FLOAT, N>::intersects(const Ray<FLOAT, N> &ray, Vector<FLOAT, N> & normal, Vector<FLOAT, N> & p, FLOAT & u, FLOAT & v, FLOAT & t) const {
+bool Triangle<FLOAT, N>::intersects(const ray<FLOAT, N> &ray, Vector<FLOAT, N> & normal, Vector<FLOAT, N> & p, FLOAT & u, FLOAT & v, FLOAT & t) const {
     const FLOAT EPSILON = 10e-7;
     normal =  (b-a).cross_product(c-a);  // points away from triangle surface (clockwise order)
 

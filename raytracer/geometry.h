@@ -1,7 +1,6 @@
 #ifndef GEOMETRY_H
 #define GEOMETRY_H
 
-
 #include "math.h"
 #include <iostream>
 #include <vector>
@@ -10,7 +9,7 @@
 
 
 template <class FLOAT, size_t N>
-struct Ray {
+struct ray {
   Vector<FLOAT,N> origin,
                   direction;
 };
@@ -64,7 +63,7 @@ public:
   bool intersects(AxisAlignedBoundingBox<FLOAT,N> aabb) const;
 
   // checks if this aabb is intersected by the given ray
-  bool intersects(Ray<FLOAT,N> ray) const;
+  bool intersects(ray<FLOAT,N> ray) const;
 
   // checks if an intersection exists with an aabb moving in the given direction
   bool intersects(AxisAlignedBoundingBox<FLOAT,N> aabb, Vector<FLOAT, N> direction) const;
@@ -83,16 +82,16 @@ protected:
   FLOAT radius;
 public:
   Sphere(Vector<FLOAT,N> center, FLOAT radius);
-  
+
   // returns true iff the given ray intersects this sphere
   // context.intersection is set to the intersection point,
   // context.normal is set to the intersection normal facing away from the surface
   // context.t is set to the value with: ray.origin + t * ray.direction == intersection
-  bool intersects(const Ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const;
+  bool intersects(const ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const;
 
   // returns a value t such that ray.origin + t * ray.direction is the intersection point
   // t is zero if no intersection occured
-  FLOAT intersects(const Ray<FLOAT, N> &ray) const;
+  FLOAT intersects(const ray<FLOAT, N> &ray) const;
 
   // returns true iff this Sphere intersects with the given sphere
   bool intersects(Sphere<FLOAT, N> sphere) const;
@@ -126,27 +125,27 @@ public:
   //   u and v are set to the barycentric coordinates of the intersection
   //   t is set to a value with intersection = ray.origin + t * ray.direction
   //   normal points away from the surface (clockwise order of a,b, and c)
-  bool intersects(const Ray<FLOAT, N> &ray, Vector<FLOAT, N> & normal, Vector<FLOAT, N> & intersection, FLOAT & u, FLOAT & v, FLOAT & t) const;
+  bool intersects(const ray<FLOAT, N> &ray, Vector<FLOAT, N> & normal, Vector<FLOAT, N> & intersection, FLOAT & u, FLOAT & v, FLOAT & t) const;
 
   // returns true if this Triangle intersects the given ray
   // if an intersection occured, than context.intersection is set to the intersection point
   //   context.u and context.v are set to the barycentric coordinates of the intersection
   //   context.t is set to a value with intersection = ray.origin + t * ray.direction
   //   context.normal points away from the surface (clockwise order of a,b, and c)
-  bool intersects(const Ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const;
+  bool intersects(const ray<FLOAT, N> &ray, Intersection_Context<FLOAT, N> & context) const;
 };
 
 
-typedef Ray<float, 2u> Ray2df;
-typedef Ray<float, 3u> Ray3df;
+typedef ray<float, 2u> ray2;
+typedef ray<float, 3u> ray3;
 
 typedef AxisAlignedBoundingBox<float, 2u> AABB2df;
 typedef AxisAlignedBoundingBox<float, 3u> AABB3df;
 
-typedef Sphere<float, 2u> Sphere2df;
-typedef Sphere<float, 3u> Sphere3df;
+typedef Sphere<float, 2u> sphere2;
+typedef Sphere<float, 3u> sphere3;
 
-typedef Triangle<float, 3u> Triangle3df;
+typedef Triangle<float, 3u> triangle3;
 
 
 #endif

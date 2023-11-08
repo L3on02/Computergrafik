@@ -3,8 +3,8 @@
 
 template class Intersection_Context<float,3u>;
 
-template class Ray<float, 2u>;
-template class Ray<float, 3u>; 
+template class ray<float, 2u>;
+template class ray<float, 3u>; 
 
 template class AxisAlignedBoundingBox<float, 2u>;
 template class AxisAlignedBoundingBox<float, 3u>; 

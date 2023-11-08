@@ -1,8 +1,9 @@
-#include "math.h"
 #include "geometry.h"
+#include "camera.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <thread>
 
 // Die folgenden Kommentare beschreiben Datenstrukturen und Funktionen
 // Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
@@ -24,7 +25,7 @@
 
 
 // Für die "Farbe" benötigt man nicht unbedingt eine eigene Datenstruktur.
-// Sie kann als Vector3df implementiert werden mit Farbanteil von 0 bis 1.
+// Sie kann als vec3 implementiert werden mit Farbanteil von 0 bis 1.
 // Vor Setzen eines Pixels auf eine bestimmte Farbe (z.B. 8-Bit-Farbtiefe),
 // kann der Farbanteil mit 255 multipliziert  und der Nachkommaanteil verworfen werden.
 
@@ -50,7 +51,7 @@
 // Die Cornelbox aufgebaut aus den Objekten
 // Am besten verwendet man hier einen std::vector< ... > von Objekten.
 
-// Punktförmige "Lichtquellen" können einfach als Vector3df implementiert werden mit weisser Farbe,
+// Punktförmige "Lichtquellen" können einfach als vec3 implementiert werden mit weisser Farbe,
 // bei farbigen Lichtquellen müssen die entsprechenden Daten in Objekt zusammengefaßt werden
 // Bei mehreren Lichtquellen können diese in einen std::vector gespeichert werden.
 
@@ -66,12 +67,16 @@
 
 
 int main(void) {
-  // Bildschirm erstellen
-  // Kamera erstellen
-  // Für jede Pixelkoordinate x,y
-  //   Sehstrahl für x,y mit Kamera erzeugen
-  //   Farbe mit raytracing-Methode bestimmen
-  //   Beim Bildschirm die Farbe für Pixel x,y, setzten
+  point3 cam_center = {0.0f, 0.0f, 0.0f};
+  float focal_length = 1.0f;
+  float vfov = 90.0f;
+  int image_width = 200;
+  int image_height = 100;
+  float aspect_ratio = 2.0f;
+
+  camera cam = camera(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
+
+  cam.get_ray(0, 0);
 
   return 0;   
 }

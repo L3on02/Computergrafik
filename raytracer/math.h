@@ -15,6 +15,13 @@ struct Vector {
   // index 0, 1, 2, ... corresponds to x,y,z,... axis
   std::array<FLOAT_TYPE, N> vector;
 
+  // creates a new Vector with all scalar values set to zero
+  Vector() {
+        for(std::size_t i = 0; i < N; ++i) {
+            vector[i] = 0.0f;
+        }
+    }
+
   // creates a new Vector with the given scalar values
   // if values is empty, then this->vector is initilized with zeros
   // if less than N values are given, then all remaining values of this->vector
@@ -91,8 +98,11 @@ struct Vector {
 static const long double PI = std::acos(-1.0L);
 
 // shorter comfortable type names
-typedef Vector<float, 2u> Vector2df;
-typedef Vector<float, 3u> Vector3df;
-typedef Vector<float, 4u> Vector4df;
+typedef Vector<float, 2u> vec2;
+typedef Vector<float, 3u> vec3;
+typedef Vector<float, 4u> vec4;
+
+using point3 = vec3;
+using color = vec3;
 
 #endif
