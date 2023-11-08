@@ -1,15 +1,16 @@
-#ifndef COLOR_H
-#define COLOR_H
+#ifndef FILEOUT_H
+#define FILEOUT_H
 
 #include <fstream>
 #include "geometry.h"
 
-class fileOut {
+class fileout {
     public:
-        fileOut(int width, int height) {
+        fileout(int width, int height) {
+            file.open("image.ppm");
             file << "P3\n" << width << " " << height << "\n255\n";
         }
-        ~fileOut() {
+        ~fileout() {
             file.close();
         }
         void writeColor(color pixelColor) {

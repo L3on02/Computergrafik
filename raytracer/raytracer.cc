@@ -1,5 +1,7 @@
 #include "geometry.h"
 #include "camera.h"
+#include "fileout.h"
+#include "object.h"
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -65,19 +67,46 @@
 
 // Die rekursive raytracing-Methode. Am besten ab einer bestimmten Rekursionstiefe (z.B. als Parameter übergeben) abbrechen.
 
+void populate_world(std::vector<Object>& world) {
+  color red = {0.8f, 0.3f, 0.3f};
+  color green = {0.3f, 0.8f, 0.3f};
+  color white = {0.8f, 0.8f, 0.8f};
+
+  Object sphere1 = {sphere3({0.0f, 0.0f, -5.0f}, 0.5f), red};
+  world.push_back(sphere1);
+  Object sphere2 = {sphere3({0.0f, 0.0f, -5.0f}, 1.0f), green};
+  world.push_back(sphere2);
+}
 
 int main(void) {
-  point3 cam_center = {0.0f, 0.0f, 0.0f};
+  point3 cam_center = {0.0f, 0.0f, -10.0f};
   float focal_length = 1.0f;
   float vfov = 90.0f;
-  int image_width = 200;
-  int image_height = 100;
-  float aspect_ratio = 2.0f;
+  int image_width = 600;
+  float aspect_ratio = 16.0f/9.0f;
+  int image_height = image_width / aspect_ratio;
 
-  camera cam = camera(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
+  camera cam(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
 
-  cam.get_ray(0, 0);
+  std::vector<Object> world;
+  populate_world(world);
+
+  fileout file(image_width, image_height);
+
+  for(int i = 0; i < image_height; i++) {
+    for(int j = 0; j < image_width; j++) {
+      ray3 ray = cam.get_ray(i, j);
+      color pixel_color = {0.0f, 0.0f, 0.0f};
+      
+      for (auto& obj : world) {
+        if (obj.sphere.intersects(ray) > 0.0f) {
+          pixel_color = obj.col;
+        }
+      }
+      file.writeColor(pixel_color);
+    }
+  }
+
 
   return 0;   
 }
-
