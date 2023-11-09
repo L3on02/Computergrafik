@@ -1,49 +1,39 @@
 #include "geometry.h"
 #include "camera.h"
 #include "fileout.h"
-#include "object.h"
-#include <iostream>
+#include "hitable.h"
+
 #include <vector>
 #include <algorithm>
+#include <limits>
 #include <thread>
 
 // Die folgenden Kommentare beschreiben Datenstrukturen und Funktionen
 // Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
 // hängen höchstens von den vorhergehenden Datenstrukturen ab, aber nicht umgekehrt.
 
-
-
 // Ein "Bildschirm", der das Setzen eines Pixels kapselt
 // Der Bildschirm hat eine Auflösung (Breite x Höhe)
 // Kann zur Ausgabe einer PPM-Datei verwendet werden oder
 // mit SDL2 implementiert werden.
 
-
-
 // Eine "Kamera", die von einem Augenpunkt aus in eine Richtung senkrecht auf ein Rechteck (das Bild) zeigt.
 // Für das Rechteck muss die Auflösung oder alternativ die Pixelbreite und -höhe bekannt sein.
 // Für ein Pixel mit Bildkoordinate kann ein Sehstrahl erzeugt werden.
-
-
 
 // Für die "Farbe" benötigt man nicht unbedingt eine eigene Datenstruktur.
 // Sie kann als vec3 implementiert werden mit Farbanteil von 0 bis 1.
 // Vor Setzen eines Pixels auf eine bestimmte Farbe (z.B. 8-Bit-Farbtiefe),
 // kann der Farbanteil mit 255 multipliziert  und der Nachkommaanteil verworfen werden.
 
-
 // Das "Material" der Objektoberfläche mit ambienten, diffusem und reflektiven Farbanteil.
-
-
 
 // Ein "Objekt", z.B. eine Kugel oder ein Dreieck, und dem zugehörigen Material der Oberfläche.
 // Im Prinzip ein Wrapper-Objekt, das mindestens Material und geometrisches Objekt zusammenfasst.
 // Kugel und Dreieck finden Sie in geometry.h/tcc
 
-
 // verschiedene Materialdefinition, z.B. Mattes Schwarz, Mattes Rot, Reflektierendes Weiss, ...
 // im wesentlichen Variablen, die mit Konstruktoraufrufen initialisiert werden.
-
 
 // Die folgenden Werte zur konkreten Objekten, Lichtquellen und Funktionen, wie Lambertian-Shading
 // oder die Suche nach einem Sehstrahl für das dem Augenpunkt am nächsten liegenden Objekte,
@@ -67,46 +57,63 @@
 
 // Die rekursive raytracing-Methode. Am besten ab einer bestimmten Rekursionstiefe (z.B. als Parameter übergeben) abbrechen.
 
-void populate_world(std::vector<Object>& world) {
+void populate_world(std::vector<hitable> &world)
+{
   color red = {0.8f, 0.3f, 0.3f};
   color green = {0.3f, 0.8f, 0.3f};
   color white = {0.8f, 0.8f, 0.8f};
 
-  Object sphere1 = {sphere3({0.0f, 0.0f, -5.0f}, 0.5f), red};
-  world.push_back(sphere1);
-  Object sphere2 = {sphere3({0.0f, 0.0f, -5.0f}, 1.0f), green};
-  world.push_back(sphere2);
+  world.push_back({{{0, -10000, 0}, 9990}, white});
+  world.push_back({{{0, 10000, 0}, 9990}, white});
+  world.push_back({{{0, 0,-10000}, 8000}, white});
+  world.push_back({{{-10000, 0, 0}, 9990}, red});
+  world.push_back({{{10000, 0, 0}, 9990}, green});
+  
 }
 
-int main(void) {
-  point3 cam_center = {0.0f, 0.0f, -10.0f};
+int main(void)
+{
+  point3 cam_center = {0.0f, 0.0f, 0.0f};
   float focal_length = 1.0f;
-  float vfov = 90.0f;
+  float vfov = 30.0f;
   int image_width = 600;
-  float aspect_ratio = 16.0f/9.0f;
+  float aspect_ratio = 1.0f;
   int image_height = image_width / aspect_ratio;
 
   camera cam(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
 
-  std::vector<Object> world;
+  std::vector<hitable> world;
   populate_world(world);
 
   fileout file(image_width, image_height);
 
-  for(int i = 0; i < image_height; i++) {
-    for(int j = 0; j < image_width; j++) {
+  for (int i = 0; i < image_height; i++)
+  {
+    for (int j = 0; j < image_width; j++)
+    {
       ray3 ray = cam.get_ray(i, j);
       color pixel_color = {0.0f, 0.0f, 0.0f};
-      
-      for (auto& obj : world) {
-        if (obj.sphere.intersects(ray) > 0.0f) {
-          pixel_color = obj.col;
+
+      // render:
+      hitable closest;
+      float closest_t = std::numeric_limits<float>::max();
+      for (auto obj : world)
+      {
+        float t = obj.sphere.intersects(ray);
+        if (t > 0.0f)
+        {
+          if (t < closest_t)
+          {
+            closest = obj;
+            closest_t = t;
+          }
         }
       }
+      pixel_color = closest.col;
+
       file.writeColor(pixel_color);
     }
   }
 
-
-  return 0;   
+  return 0;
 }

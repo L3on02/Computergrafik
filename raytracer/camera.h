@@ -2,6 +2,7 @@
 #define CAMERA_H
 
 #include "geometry.h"
+#include <iostream>
 
 class camera
 {
@@ -25,9 +26,9 @@ public:
         pixel_upper_left = viewport_upper_left + 0.5f * (pixel_delta_u + pixel_delta_v);
     }
 
-    ray3 get_ray(int i, int j) const
+    ray3 get_ray(int pos_v, int pos_u) const
     {
-        ray3 ray = {center, pixel_upper_left + (float)i * pixel_delta_u + (float)j * pixel_delta_v - center};
+        ray3 ray = {center, pixel_upper_left + (float)pos_u * pixel_delta_u + (float)pos_v * pixel_delta_v - center};
         return ray;
     }
 
