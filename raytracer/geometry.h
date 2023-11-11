@@ -77,9 +77,7 @@ public:
 // a sphere with a center and a radius
 template <class FLOAT, size_t N>
 class Sphere {
-protected:
-  Vector<FLOAT,N> center;
-  FLOAT radius;
+ 
 public:
   Sphere(Vector<FLOAT,N> center, FLOAT radius);
 
@@ -99,7 +97,9 @@ public:
   
   // returns true iff the given point is inside this Sphere or on its surface
   bool inside(const Vector<FLOAT, N> p) const;
- 
+
+  Vector<FLOAT,N> center;
+  FLOAT radius;
 };
 
 template <class FLOAT, size_t N>

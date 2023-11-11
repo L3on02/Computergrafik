@@ -12,20 +12,6 @@
 // Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
 // hängen höchstens von den vorhergehenden Datenstrukturen ab, aber nicht umgekehrt.
 
-// Ein "Bildschirm", der das Setzen eines Pixels kapselt
-// Der Bildschirm hat eine Auflösung (Breite x Höhe)
-// Kann zur Ausgabe einer PPM-Datei verwendet werden oder
-// mit SDL2 implementiert werden.
-
-// Eine "Kamera", die von einem Augenpunkt aus in eine Richtung senkrecht auf ein Rechteck (das Bild) zeigt.
-// Für das Rechteck muss die Auflösung oder alternativ die Pixelbreite und -höhe bekannt sein.
-// Für ein Pixel mit Bildkoordinate kann ein Sehstrahl erzeugt werden.
-
-// Für die "Farbe" benötigt man nicht unbedingt eine eigene Datenstruktur.
-// Sie kann als vec3 implementiert werden mit Farbanteil von 0 bis 1.
-// Vor Setzen eines Pixels auf eine bestimmte Farbe (z.B. 8-Bit-Farbtiefe),
-// kann der Farbanteil mit 255 multipliziert  und der Nachkommaanteil verworfen werden.
-
 // Das "Material" der Objektoberfläche mit ambienten, diffusem und reflektiven Farbanteil.
 
 // Ein "Objekt", z.B. eine Kugel oder ein Dreieck, und dem zugehörigen Material der Oberfläche.
@@ -57,33 +43,103 @@
 
 // Die rekursive raytracing-Methode. Am besten ab einer bestimmten Rekursionstiefe (z.B. als Parameter übergeben) abbrechen.
 
-void populate_world(std::vector<hitable> &world)
+void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
 {
   color red = {0.8f, 0.3f, 0.3f};
   color green = {0.3f, 0.8f, 0.3f};
   color white = {0.8f, 0.8f, 0.8f};
+  color blue = {0.3f, 0.3f, 0.8f};
 
-  world.push_back({{{0, -10000, 0}, 9990}, white});
-  world.push_back({{{0, 10000, 0}, 9990}, white});
-  world.push_back({{{0, 0,-10000}, 8000}, white});
-  world.push_back({{{-10000, 0, 0}, 9990}, red});
-  world.push_back({{{10000, 0, 0}, 9990}, green});
-  
+  world.push_back({{{0, -100000, 0}, 99990}, white, 0.25});
+  world.push_back({{{0, 100000, 0}, 99990}, white, 0.25f});
+  world.push_back({{{0, 0, -100000}, 99950}, white, 0.25f});
+  world.push_back({{{-100000, 0, 0}, 99990}, red, 0.25f});
+  world.push_back({{{100000, 0, 0}, 99990}, green, 0.25f});
+  world.push_back({{{-1, -7, -30}, 3}, blue, 0.3f});
+
+  lights.push_back({{-5.0f, 7.0f, -45}, 1.0f});
+  lights.push_back({{5.0f, 7.0f, -45}, 0.2f});
+  //lights.push_back({{0.0f, 7.0f, -30}, 1.0f});
+
+}
+
+bool hit_anything(ray3 to_light, std::vector<hitable> world)
+{
+  for (auto obj : world)
+  {
+    float t = obj.sphere.intersects(to_light);
+    if (0 < t && t < 1)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+color lambertian(ray3 ray, hitable closest, float closest_t, std::vector<hitable> world, std::vector<light> lights)
+{
+  if (closest.sphere.radius != -1)
+  {
+    point3 hitpoint = ray.origin + closest_t * ray.direction;
+    vec3 surface_normal = hitpoint - closest.sphere.center;
+    surface_normal.normalize();
+    float light_intensity = 0;
+    for (size_t i = 0; i < lights.size(); i++)
+    {
+      vec3 to_light_direction = lights[i].pos - hitpoint;
+      vec3 to_light_normalized = to_light_direction;
+      to_light_normalized.normalize();
+      ray3 to_light = {hitpoint + 0.08f * to_light_normalized, 0.92f * to_light_direction};
+      if (!hit_anything(to_light, world))
+      {
+        light_intensity += lights[i].intensity * std::max(0.0f, surface_normal * to_light_normalized);
+      }
+    }
+    light_intensity /= lights.size();
+    return (closest.const_light + light_intensity) * closest.col;
+  }
+  else
+  {
+    return {0.0f, 0.0f, 0.0f};
+  }
+}
+
+color ray_color(ray3 ray, int depth, std::vector<hitable> world, std::vector<light> lights)
+{
+  if (depth <= 0)
+    return {0.0f, 0.0f, 0.0f};
+
+  hitable closest = {{{0.0f, 0.0f, 0.0f}, -1}, {0.0f, 0.0f, 0.0f}, 0.0f};
+  float closest_t = std::numeric_limits<float>::max();
+  for (auto obj : world)
+  {
+    float t = obj.sphere.intersects(ray);
+    if (t > 0.0f)
+    {
+      if (t < closest_t)
+      {
+        closest = obj;
+        closest_t = t;
+      }
+    }
+  }
+  return lambertian(ray, closest, closest_t, world, lights);
 }
 
 int main(void)
 {
   point3 cam_center = {0.0f, 0.0f, 0.0f};
   float focal_length = 1.0f;
-  float vfov = 30.0f;
+  float vfov = 90.0f;
   int image_width = 600;
-  float aspect_ratio = 1.0f;
+  float aspect_ratio = 1.0f; // 16.0f / 9.0f;
   int image_height = image_width / aspect_ratio;
 
   camera cam(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
 
   std::vector<hitable> world;
-  populate_world(world);
+  std::vector<light> lights;
+  initialize_world(world, lights);
 
   fileout file(image_width, image_height);
 
@@ -92,25 +148,7 @@ int main(void)
     for (int j = 0; j < image_width; j++)
     {
       ray3 ray = cam.get_ray(i, j);
-      color pixel_color = {0.0f, 0.0f, 0.0f};
-
-      // render:
-      hitable closest;
-      float closest_t = std::numeric_limits<float>::max();
-      for (auto obj : world)
-      {
-        float t = obj.sphere.intersects(ray);
-        if (t > 0.0f)
-        {
-          if (t < closest_t)
-          {
-            closest = obj;
-            closest_t = t;
-          }
-        }
-      }
-      pixel_color = closest.col;
-
+      color pixel_color = ray_color(ray, 1, world, lights);
       file.writeColor(pixel_color);
     }
   }

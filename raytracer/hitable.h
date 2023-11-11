@@ -3,9 +3,19 @@
 
 #include "geometry.h"
 
-struct hitable {
-    sphere3 sphere = {{0.0f, 0.0f, 0.0f}, 0.0f};
-    color col = {0.0f, 0.0f, 0.0f};
+struct hitable
+{
+    sphere3 sphere;
+    color col;
+    float const_light;
+    // material mat_ptr;
+};
+
+struct light
+{
+    point3 pos;
+    //color col;
+    float intensity;
 };
 
 #endif
