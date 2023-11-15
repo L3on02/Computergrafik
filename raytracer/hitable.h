@@ -8,7 +8,9 @@ struct hitable
     sphere3 sphere;
     color col;
     float const_light;
-    // material mat_ptr;
+    float density = 1.0f;
+    bool is_reflective = false;
+    bool is_transmissive = false;
 };
 
 struct light

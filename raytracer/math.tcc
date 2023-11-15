@@ -1,4 +1,5 @@
 #include <cassert>
+#include <random>
 #include "math.h"
 
 template <class FLOAT_TYPE, size_t N>
@@ -110,9 +111,22 @@ Vector<FLOAT_TYPE, N> Vector<FLOAT_TYPE, N>::get_reflective(Vector<FLOAT_TYPE, N
 }
 
 template <class FLOAT_TYPE, size_t N>
-FLOAT_TYPE Vector<FLOAT_TYPE, N>::angle(size_t axis_1, size_t axis_2) const {
-  Vector<FLOAT_TYPE, N> normalized = (1.0f / length()) * *this;
-  return atan2( normalized[axis_2], normalized[axis_1] );
+inline Vector<FLOAT_TYPE, N> Vector<FLOAT_TYPE, N>::get_randmo_unit_vector(Vector normal) const
+{
+  Vector<FLOAT_TYPE, N> random_vector;
+  do {
+    random_vector = { static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0),
+                      static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0),
+                      static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0) };
+  } while (random_vector * normal > static_cast<FLOAT_TYPE>(1.0));
+  return random_vector;
+}
+
+template <class FLOAT_TYPE, size_t N>
+FLOAT_TYPE Vector<FLOAT_TYPE, N>::angle(size_t axis_1, size_t axis_2) const
+{
+    Vector<FLOAT_TYPE, N> normalized = (1.0f / length()) * *this;
+    return atan2(normalized[axis_2], normalized[axis_1]);
 }
 
 // Vektorlänge

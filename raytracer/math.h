@@ -60,6 +60,10 @@ struct Vector {
   // returns the specular reflective "ray" Vector wrt the give normal vector
   // normal must be a normalized vector
   Vector get_reflective(Vector normal) const;
+
+  // returns random unit vector in the hemisphere of the given normal vector
+
+  Vector get_randmo_unit_vector(Vector normal) const;
   
   // returns the angle of this Vector between the two given axis in radians
   FLOAT_TYPE angle(size_t axis_1, size_t axis_2) const;

@@ -106,9 +106,9 @@ bool Sphere<FLOAT,N>::intersects(const ray<FLOAT, N> &ray, Intersection_Context<
   context.intersection = ray.origin + t * ray.direction;
   context.normal = context.intersection - center;
   context.normal.normalize();
-  if ( inside( ray.origin ) ) {
+  /* if ( inside( ray.origin ) ) {
     context.normal = static_cast<FLOAT>(-1.0) * context.normal; // ray starts inside sphere, normal points to the inside;
-  }
+  } */
   return true;
 }
 
