@@ -117,4 +117,20 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
   return col;
 }
 
+/* void start_render(int image_height, int image_width, int max_depth, std::vector<hitable> &world, std::vector<light> &lights, camera &cam ,image_memory &image) {
+  for (int i = 0; i < image_height; i++)
+  {
+    for (int j = 0; j < image_width; j++)
+    {
+      ray3 ray = cam.get_ray(i, j);
+      color pixel_color = ray_color(ray, max_depth, world, lights);
+      
+    }
+  }
+} */
+
+void render() {
+
+}
+
 #endif

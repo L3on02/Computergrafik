@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "fileout.h"
 #include "render.h"
+#include "parallel.h"
 
 // Die folgenden Kommentare beschreiben Datenstrukturen und Funktionen
 // Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
@@ -31,19 +32,18 @@ void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
 
   lights.push_back({{-5.0f, 7.0f, -45}, 1.0f});
   lights.push_back({{5.0f, 7.0f, -45}, 1.0f});
-  lights.push_back({{0.0f, 7.0f, -25}, 1.0f});
+  //lights.push_back({{0.0f, 7.0f, -25}, 1.0f});
 }
 
 int main(void)
 {
-  int image_width = 600;
-  int pixel_samples = 100;
+  int image_width = 1920;
   int max_depth = 50;
 
   point3 cam_center = {0.0f, 0.0f, 0.0f};
   float focal_length = 1.0f;
   float vfov = 90.0f;
-  float aspect_ratio = 1.0f; // 16.0f / 9.0f;
+  float aspect_ratio = 16.0f / 9.0f;
   int image_height = image_width / aspect_ratio;
 
   camera cam(cam_center, focal_length, vfov, image_width, image_height, aspect_ratio);
@@ -54,6 +54,8 @@ int main(void)
 
   fileout file(image_width, image_height);
 
+  image_memory image(image_width, image_height);
+
   for (int i = 0; i < image_height; i++)
   {
     for (int j = 0; j < image_width; j++)
@@ -63,6 +65,8 @@ int main(void)
       file.writeColor(pixel_color);
     }
   }
+
+  // file.writeImage(image.get_image(), image_width, image_height);
 
   return 0;
 }
