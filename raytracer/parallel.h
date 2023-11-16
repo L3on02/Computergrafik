@@ -10,9 +10,9 @@
 
 using color = vec3;
 
-class image_memory {
+class image_monitor {
     public:
-        image_memory(int render_width, int render_height) : lines(render_height), rows(render_width) {
+        image_monitor(int render_width, int render_height) : lines(render_height), rows(render_width) {
             linesLeft = lines;
             shared_storage = new color[lines * rows];
         }

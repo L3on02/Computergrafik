@@ -1,7 +1,6 @@
 #include "camera.h"
 #include "fileout.h"
 #include "render.h"
-#include "parallel.h"
 
 // Die folgenden Kommentare beschreiben Datenstrukturen und Funktionen
 // Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
@@ -37,7 +36,7 @@ void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
 
 int main(void)
 {
-  int image_width = 1920;
+  int image_width = 3840;
   int max_depth = 50;
 
   point3 cam_center = {0.0f, 0.0f, 0.0f};
@@ -54,19 +53,11 @@ int main(void)
 
   fileout file(image_width, image_height);
 
-  image_memory image(image_width, image_height);
+  image_monitor monitor(image_width, image_height);
 
-  for (int i = 0; i < image_height; i++)
-  {
-    for (int j = 0; j < image_width; j++)
-    {
-      ray3 ray = cam.get_ray(i, j);
-      color pixel_color = ray_color(ray, max_depth, world, lights);
-      file.writeColor(pixel_color);
-    }
-  }
+  start_render(image_width, image_height, max_depth, world, lights, cam, monitor);
 
-  // file.writeImage(image.get_image(), image_width, image_height);
+  file.writeImage(monitor.get_image(), image_width, image_height);
 
   return 0;
 }

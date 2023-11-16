@@ -13,15 +13,15 @@ class fileout {
         ~fileout() {
             file.close();
         }
-        void writeColor(color pixelColor) {
+        void writePixel(color pixelColor) {
             file << static_cast<int>(255.999 * pixelColor[0]) << " "
                       << static_cast<int>(255.999 * pixelColor[1]) << " "
                       << static_cast<int>(255.999 * pixelColor[2]) << "\n";
         }
         void writeImage(color *image, int width, int height) {
-            for (int i = height - 1; i >= 0; i--) {
+            for (int i = 0; i < height; i++) {
                 for (int j = 0; j < width; j++) {
-                    writeColor(image[i * width + j]);
+                    writePixel(image[i * width + j]);
                 }
             }
         }

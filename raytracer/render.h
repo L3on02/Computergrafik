@@ -1,13 +1,11 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "geometry.h"
 #include "hitable.h"
+#include "parallel.h"
 
-#include <vector>
 #include <algorithm>
 #include <limits>
-#include <thread>
 
 bool hit_anything(ray3 to_light, std::vector<hitable> &world)
 {
@@ -46,7 +44,6 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
     return {0.0f, 0.0f, 0.0f};
   }
 }
-
 
 float schlick_approximation(vec3 a, vec3 b, hitable A, hitable B)
 {
@@ -103,34 +100,50 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
   {
     col += ray_color({context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)}, depth - 1, world, lights);
   }
-  
+
   if (closest.is_transmissive)
   {
     float r = schlick_approximation(ray.direction, context.normal, closest, {{{0, 0, 0}, 0}, {0, 0, 0}, 0, 1});
     col *= (1 - r);
     col += r * ray_color(refract(ray, closest, context), depth - 1, world, lights);
   }
-  
+
   if (!(closest.is_reflective || closest.is_transmissive))
     col += lambertian(closest, context, world, lights);
-  
+
   return col;
 }
 
-/* void start_render(int image_height, int image_width, int max_depth, std::vector<hitable> &world, std::vector<light> &lights, camera &cam ,image_memory &image) {
-  for (int i = 0; i < image_height; i++)
+void render(int image_width, int image_height, int max_depth, std::vector<hitable> &world, std::vector<light> &lights, camera &cam, image_monitor &monitor)
+{
+  int i;
+  while ((i = monitor.get_render_line()) < image_height)
   {
     for (int j = 0; j < image_width; j++)
     {
       ray3 ray = cam.get_ray(i, j);
       color pixel_color = ray_color(ray, max_depth, world, lights);
-      
+      monitor.write_pixel(i, j, pixel_color);
     }
   }
-} */
+}
 
-void render() {
+void start_render(int image_width, int image_height, int max_depth, std::vector<hitable> &world, std::vector<light> &lights, camera &cam, image_monitor &monitor)
+{
+  std::clog << "Starting render...\n";
+  int processor_count = std::thread::hardware_concurrency();
+  std::vector<std::thread> threads;
 
+  for (int i = 0; i < processor_count; i++)
+  {
+    threads.push_back(std::thread(render, image_width, image_height, max_depth, std::ref(world), std::ref(lights), std::ref(cam), std::ref(monitor)));
+  }
+  //wait for all threads to finish
+  for (auto &t : threads)
+  {
+    t.join();
+  }
+  std::clog << "\nDone\n";
 }
 
 #endif
