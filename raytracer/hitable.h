@@ -3,20 +3,32 @@
 
 #include "geometry.h"
 
-struct hitable
-{
-    sphere3 sphere;
-    color col;
-    float const_light;
+#define MATTE_WHITE material{{0.8f, 0.8f, 0.8f}, 0.25f}
+#define MATTE_RED material{{0.8f, 0.3f, 0.3f}, 0.25f}
+#define MATTE_GREEN material{{0.3f, 0.8f, 0.3f}, 0.25f}
+#define MATTE_BLUE material{{0.3f, 0.3f, 0.8f}, 0.25f}
+#define MATTE_BLACK material{{0.3f, 0.3f, 0.3f}, 0.25f}
+
+#define MIRROR material{{1.0f, 1.0f, 1.0f}, 0.25f, 1.0f, true, false}
+#define GLASS material{{1.0f, 1.0f, 1.0f}, 0.25f, 1.52f, true, true}
+
+struct material {
+    color col = {0.0f, 0.0f, 0.0f};
+    float const_light = 0.3f;
     float density = 1.0f;
     bool is_reflective = false;
     bool is_transmissive = false;
 };
 
+struct hitable
+{
+    sphere3 sphere = {{0.0f, 0.0f, 0.0f}, -1.0f};
+    material mat = MATTE_BLACK;
+};
+
 struct light
 {
     point3 pos;
-    //color col;
     float intensity;
 };
 

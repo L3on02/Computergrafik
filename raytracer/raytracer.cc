@@ -2,38 +2,21 @@
 #include "fileout.h"
 #include "render.h"
 
-// Die folgenden Kommentare beschreiben Datenstrukturen und Funktionen
-// Die Datenstrukturen und Funktionen die weiter hinten im Text beschrieben sind,
-// hängen höchstens von den vorhergehenden Datenstrukturen ab, aber nicht umgekehrt.
-
-// Das "Material" der Objektoberfläche mit ambienten, diffusem und reflektiven Farbanteil.
-
-// verschiedene Materialdefinition, z.B. Mattes Schwarz, Mattes Rot, Reflektierendes Weiss, ...
-// im wesentlichen Variablen, die mit Konstruktoraufrufen initialisiert werden.
-
-// Die rekursive raytracing-Methode. Am besten ab einer bestimmten Rekursionstiefe (z.B. als Parameter übergeben) abbrechen.
-
 void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
 {
-  color red = {0.8f, 0.3f, 0.3f};
-  color green = {0.3f, 0.8f, 0.3f};
-  color white = {0.8f, 0.8f, 0.8f};
-  color blue = {0.3f, 0.3f, 0.8f};
-
-  world.push_back({{{0, -100000, 0}, 99990}, white, 0.25});
-  world.push_back({{{0, 100000, 0}, 99990}, white, 0.25f});
-  world.push_back({{{0, 0, -100000}, 99950}, white, 0.25f});
-  world.push_back({{{0, 0, 100000}, 99999}, white, 0.25f});
-  world.push_back({{{-100000, 0, 0}, 99990}, red, 0.25f});
-  world.push_back({{{100000, 0, 0}, 99990}, green, 0.25f});
+  world.push_back({{{0, -100000, 0}, 99990}, MATTE_WHITE});
+  world.push_back({{{0, 100000, 0}, 99990}, MATTE_WHITE});
+  world.push_back({{{0, 0, -100000}, 99950}, MATTE_WHITE});
+  world.push_back({{{0, 0, 100000}, 99999}, MATTE_WHITE});
+  world.push_back({{{-100000, 0, 0}, 99990}, MATTE_RED});
+  world.push_back({{{100000, 0, 0}, 99990}, MATTE_GREEN});
 
 
-  //world.push_back({{{-4, -6.5f, -30}, 4}, blue, 0.3f, 1.52f, true, false});
-  world.push_back({{{4, -6.5f, -30}, 4}, green, 0.3f, 1.52f, true, true});
+  world.push_back({{{-4, -6.5f, -30}, 3}, MATTE_WHITE});
+  world.push_back({{{4, -7, -35}, 4}, GLASS});
 
   lights.push_back({{-5.0f, 4.0f, -45}, 1.0f});
   lights.push_back({{5.0f, 7.0f, -45}, 1.0f});
-  // lights.push_back({{0.0f, 7.0f, -15}, 1.0f});
 }
 
 int main(void)

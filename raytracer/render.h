@@ -37,7 +37,7 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
       }
     }
     light_intensity /= lights.size();
-    return (closest.const_light + light_intensity) * closest.col;
+    return (closest.mat.const_light + light_intensity) * closest.mat.col;
   }
   else
   {
@@ -46,11 +46,11 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
 }
 
 float schlick_approximation(vec3 inbound, vec3 normal, hitable obj) {
-  float r0 = (normal * inbound) > 0 ?(1.0f - obj.density) / (1.0f + obj.density) : (obj.density - 1.0f) / (obj.density + 1.0f);
+  float r0 = (normal * inbound) > 0 ?(1.0f - obj.mat.density) / (1.0f + obj.mat.density) : (obj.mat.density - 1.0f) / (obj.mat.density + 1.0f);
   r0 *= r0;
   float cos_x = -1.0f * (normal * inbound);
-  if (obj.density > 1.0f) {
-    float n = obj.density;
+  if (obj.mat.density > 1.0f) {
+    float n = obj.mat.density;
     float sin_t2 = n * n * (1.0f - cos_x * cos_x);
     if (sin_t2 > 1.0f) {
       return 1.0f;
@@ -61,22 +61,26 @@ float schlick_approximation(vec3 inbound, vec3 normal, hitable obj) {
   return r0 + (1.0f - r0) * x * x * x * x * x;
 }
 
-ray3 refract(ray3 in, hitable object, Intersection_Context<float, 3> context)
+bool refract(ray3 in, ray3 &out, hitable object, Intersection_Context<float, 3> context)
 {
-  ray3 out;
+  float n = (context.normal * in.direction) > 0 ? object.mat.density / 1.0f : 1.0f / object.mat.density;
+  float root_term = 1.0f - n * n * (1.0f - (context.normal * in.direction) * (context.normal * in.direction));
+  if (root_term < 0.0f) { // total internal reflection
+    return false;
+  }
+  vec3 dir = n * (in.direction - (context.normal * in.direction) * context.normal) - (float)sqrt(root_term) * context.normal;
   out.origin = context.intersection;
-  float n = (context.normal * in.direction) > 0 ? object.density / 1.0f : 1.0f / object.density;
-  out.direction = n * (in.direction - (context.normal * in.direction) * context.normal) - (float)sqrt(1.0f - n * n * (1.0f - (context.normal * in.direction) * (context.normal * in.direction))) * context.normal;
+  out.direction = dir;
   out.origin += 0.08f * out.direction;
-  return out;
+  return true;
 }
 
 color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<light> &lights)
 {
   if (depth <= 0)
     return {0.0f, 0.0f, 0.0f};
-
-  hitable closest = {{{0.0f, 0.0f, 0.0f}, -1}, {0.0f, 0.0f, 0.0f}, 0.0f};
+  
+  hitable closest;
   float closest_t = std::numeric_limits<float>::max();
   Intersection_Context<float, 3> context;
   for (auto obj : world)
@@ -94,19 +98,22 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
   }
 
   color col = {0, 0, 0};
-  if (closest.is_reflective)
+  if (closest.mat.is_reflective)
   {
     col += ray_color({context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)}, depth - 1, world, lights);
   }
 
-  if (closest.is_transmissive)
+  if (closest.mat.is_transmissive)
   {
     float r = schlick_approximation(ray.direction, context.normal, closest);
-    col *= r;
-    col += (1 - r) * ray_color(refract(ray, closest, context), depth - 1, world, lights);
+    ray3 refracted;
+    if(refract(ray, refracted, closest, context)) {
+      col *= r;
+      col += (1 - r) * ray_color(refracted, depth - 1, world, lights);
+    }
   }
 
-  if (!(closest.is_reflective || closest.is_transmissive))
+  if (!(closest.mat.is_reflective || closest.mat.is_transmissive))
     col += lambertian(closest, context, world, lights);
 
   return col;
