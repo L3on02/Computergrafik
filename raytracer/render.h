@@ -98,14 +98,15 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
   }
 
   color col = {0, 0, 0};
-  if (closest.mat.is_reflective)
+  float r = schlick_approximation(ray.direction, context.normal, closest);
+  if (closest.mat.reflectivity > 0.05f && (!closest.mat.is_transmissive || r > 0.05f))
   {
-    col += ray_color({context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)}, depth - 1, world, lights);
+    col += closest.mat.reflectivity * ray_color({context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)}, depth - 1, world, lights);
   }
 
-  if (closest.mat.is_transmissive)
+  if (closest.mat.is_transmissive && r < 0.05f)
   {
-    float r = schlick_approximation(ray.direction, context.normal, closest);
+    
     ray3 refracted;
     if(refract(ray, refracted, closest, context)) {
       col *= r;
@@ -113,8 +114,8 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
     }
   }
 
-  if (!(closest.mat.is_reflective || closest.mat.is_transmissive))
-    col += lambertian(closest, context, world, lights);
+  if (!(closest.mat.is_transmissive))
+    col += (1 - closest.mat.reflectivity) * lambertian(closest, context, world, lights);
 
   return col;
 }

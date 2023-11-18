@@ -12,17 +12,18 @@ void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
   world.push_back({{{100000, 0, 0}, 99990}, MATTE_GREEN});
 
 
-  world.push_back({{{-4, -6.5f, -30}, 3}, MATTE_WHITE});
-  world.push_back({{{4, -7, -35}, 4}, GLASS});
+  world.push_back({{{-4, -6.5f, -30}, 4}, MIRROR});
+  world.push_back({{{4, -6.5f, -30}, 4}, GLASS});
 
   lights.push_back({{-5.0f, 4.0f, -45}, 1.0f});
   lights.push_back({{5.0f, 7.0f, -45}, 1.0f});
+  lights.push_back({{0.0f, 0.0f, -15}, 1.0f});
 }
 
 int main(void)
 {
   int image_width = 960;
-  int max_depth = 10;
+  int max_depth = 50;
 
   point3 cam_center = {0.0f, 0.0f, 0.0f};
   float focal_length = 1.0f;
