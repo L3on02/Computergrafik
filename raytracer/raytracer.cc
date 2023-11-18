@@ -26,18 +26,20 @@ void initialize_world(std::vector<hitable> &world, std::vector<light> &lights)
   world.push_back({{{0, 0, 100000}, 99999}, white, 0.25f});
   world.push_back({{{-100000, 0, 0}, 99990}, red, 0.25f});
   world.push_back({{{100000, 0, 0}, 99990}, green, 0.25f});
-  world.push_back({{{-4, -6.5f, -30}, 4}, blue, 0.3f, 1.52f, true, false});
-  world.push_back({{{4, -6.5f, -30}, 4}, blue, 0.3f, 1.52f, true, false});
 
-  lights.push_back({{-5.0f, 7.0f, -45}, 1.0f});
+
+  //world.push_back({{{-4, -6.5f, -30}, 4}, blue, 0.3f, 1.52f, true, false});
+  world.push_back({{{4, -6.5f, -30}, 4}, green, 0.3f, 1.52f, true, true});
+
+  lights.push_back({{-5.0f, 4.0f, -45}, 1.0f});
   lights.push_back({{5.0f, 7.0f, -45}, 1.0f});
-  //lights.push_back({{0.0f, 7.0f, -25}, 1.0f});
+  // lights.push_back({{0.0f, 7.0f, -15}, 1.0f});
 }
 
 int main(void)
 {
-  int image_width = 3840;
-  int max_depth = 50;
+  int image_width = 960;
+  int max_depth = 10;
 
   point3 cam_center = {0.0f, 0.0f, 0.0f};
   float focal_length = 1.0f;

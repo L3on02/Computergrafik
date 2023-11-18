@@ -45,22 +45,19 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
   }
 }
 
-float schlick_approximation(vec3 a, vec3 b, hitable A, hitable B)
-{
-  float r0 = (A.density - B.density) / (A.density + B.density);
+float schlick_approximation(vec3 inbound, vec3 normal, hitable obj) {
+  float r0 = (normal * inbound) > 0 ?(1.0f - obj.density) / (1.0f + obj.density) : (obj.density - 1.0f) / (obj.density + 1.0f);
   r0 *= r0;
-  float cos_theta = a * b;
-  if (A.density > B.density)
-  {
-    float n = A.density / B.density;
-    float sin_theta_t = n * n * (1.0f - cos_theta * cos_theta);
-    if (sin_theta_t > 1.0f)
-    {
+  float cos_x = -1.0f * (normal * inbound);
+  if (obj.density > 1.0f) {
+    float n = obj.density;
+    float sin_t2 = n * n * (1.0f - cos_x * cos_x);
+    if (sin_t2 > 1.0f) {
       return 1.0f;
     }
-    cos_theta = sqrt(1.0f - sin_theta_t);
+    cos_x = (float)sqrt(1.0f - sin_t2);
   }
-  float x = 1.0f - cos_theta;
+  float x = 1.0f - cos_x;
   return r0 + (1.0f - r0) * x * x * x * x * x;
 }
 
@@ -70,6 +67,7 @@ ray3 refract(ray3 in, hitable object, Intersection_Context<float, 3> context)
   out.origin = context.intersection;
   float n = (context.normal * in.direction) > 0 ? object.density / 1.0f : 1.0f / object.density;
   out.direction = n * (in.direction - (context.normal * in.direction) * context.normal) - (float)sqrt(1.0f - n * n * (1.0f - (context.normal * in.direction) * (context.normal * in.direction))) * context.normal;
+  out.origin += 0.08f * out.direction;
   return out;
 }
 
@@ -103,9 +101,9 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
 
   if (closest.is_transmissive)
   {
-    float r = schlick_approximation(ray.direction, context.normal, closest, {{{0, 0, 0}, 0}, {0, 0, 0}, 0, 1});
-    col *= (1 - r);
-    col += r * ray_color(refract(ray, closest, context), depth - 1, world, lights);
+    float r = schlick_approximation(ray.direction, context.normal, closest);
+    col *= r;
+    col += (1 - r) * ray_color(refract(ray, closest, context), depth - 1, world, lights);
   }
 
   if (!(closest.is_reflective || closest.is_transmissive))
