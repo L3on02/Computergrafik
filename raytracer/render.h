@@ -11,6 +11,7 @@ bool hit_anything(ray3 to_light, std::vector<hitable> &world)
 {
   for (auto obj : world)
   {
+    if(obj.mat.is_transmissive) continue; // ignore transparent objects (for now)
     float t = obj.sphere.intersects(to_light);
     if (0 < t && t < 1)
     {
@@ -30,7 +31,7 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
       vec3 to_light_direction = lights[i].pos - context.intersection;
       vec3 to_light_normalized = to_light_direction;
       to_light_normalized.normalize();
-      ray3 to_light = {context.intersection + 0.08f * to_light_normalized, 0.92f * to_light_direction};
+      ray3 to_light = {context.intersection + 0.08f * to_light_normalized, to_light_direction - 0.08f * to_light_normalized};
       if (!hit_anything(to_light, world))
       {
         light_intensity += lights[i].intensity * std::max(0.0f, context.normal * to_light_normalized);
@@ -45,8 +46,8 @@ color lambertian(hitable closest, Intersection_Context<float, 3> context, std::v
   }
 }
 
-float schlick_approximation(vec3 inbound, vec3 normal, hitable obj) {
-  float r0 = (normal * inbound) > 0 ?(1.0f - obj.mat.density) / (1.0f + obj.mat.density) : (obj.mat.density - 1.0f) / (obj.mat.density + 1.0f);
+float schlick_approximation(vec3 inbound, vec3 normal, hitable obj, bool ray_inside) {
+  float r0 = ray_inside ? (1.0f - obj.mat.density) / (1.0f + obj.mat.density) : (obj.mat.density - 1.0f) / (obj.mat.density + 1.0f);
   r0 *= r0;
   float cos_x = -1.0f * (normal * inbound);
   if (obj.mat.density > 1.0f) {
@@ -63,13 +64,14 @@ float schlick_approximation(vec3 inbound, vec3 normal, hitable obj) {
 
 bool refract(ray3 in, ray3 &out, hitable object, Intersection_Context<float, 3> context)
 {
-  float n = (context.normal * in.direction) > 0 ? object.mat.density / 1.0f : 1.0f / object.mat.density;
+  float n = (context.normal * in.direction) > 0 ? object.mat.density : 1.0f / object.mat.density;
   float root_term = 1.0f - n * n * (1.0f - (context.normal * in.direction) * (context.normal * in.direction));
   if (root_term < 0.0f) { // total internal reflection
     return false;
   }
   vec3 dir = n * (in.direction - (context.normal * in.direction) * context.normal) - (float)sqrt(root_term) * context.normal;
   out.origin = context.intersection;
+  dir.normalize();
   out.direction = dir;
   out.origin += 0.08f * out.direction;
   return true;
@@ -98,15 +100,24 @@ color ray_color(ray3 ray, int depth, std::vector<hitable> &world, std::vector<li
   }
 
   color col = {0, 0, 0};
-  float r = schlick_approximation(ray.direction, context.normal, closest);
-  if (closest.mat.reflectivity > 0.05f && (!closest.mat.is_transmissive || r > 0.05f))
+  if (closest_t == std::numeric_limits<float>::max())
   {
-    col += closest.mat.reflectivity * ray_color({context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)}, depth - 1, world, lights);
+    return col;
   }
 
-  if (closest.mat.is_transmissive && r < 0.05f)
+  bool ray_inside = (context.normal * ray.direction) > 0;
+  if (ray_inside)
+    context.normal = -1.0f * context.normal;
+
+  float r = schlick_approximation(ray.direction, context.normal, closest, ray_inside);
+  
+  if (closest.mat.reflectivity > 0.05f && r > 0.05f)
   {
-    
+    ray3 reflected = {context.intersection + 0.08f * context.normal, 0.92f * ray.direction.get_reflective(context.normal)};
+    col += closest.mat.reflectivity * ray_color(reflected, depth - 1, world, lights);
+  }
+  if (closest.mat.is_transmissive && r < 0.95f)
+  {
     ray3 refracted;
     if(refract(ray, refracted, closest, context)) {
       col *= r;
@@ -127,6 +138,8 @@ void render(int image_width, int image_height, int max_depth, std::vector<hitabl
   {
     for (int j = 0; j < image_width; j++)
     {
+      /* if(j==image_width/2 && i==image_height/2) //debug middle pixel
+        int u = 3; */
       ray3 ray = cam.get_ray(i, j);
       color pixel_color = ray_color(ray, max_depth, world, lights);
       monitor.write_pixel(i, j, pixel_color);
