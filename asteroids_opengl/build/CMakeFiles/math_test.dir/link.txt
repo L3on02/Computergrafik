@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/math_test.dir/math_test.cc.o CMakeFiles/math_test.dir/math.cc.o -o math_test  -lgtest -lgtest_main 

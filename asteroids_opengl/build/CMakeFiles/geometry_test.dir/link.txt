@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/geometry_test.dir/geometry_test.cc.o CMakeFiles/geometry_test.dir/geometry.cc.o CMakeFiles/geometry_test.dir/math.cc.o -o geometry_test  -lgtest -lgtest_main 

@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/physics_test.dir/physics_test.cc.o CMakeFiles/physics_test.dir/physics.cc.o CMakeFiles/physics_test.dir/geometry.cc.o CMakeFiles/physics_test.dir/math.cc.o CMakeFiles/physics_test.dir/timer.cc.o -o physics_test  -lgtest -lgtest_main -lSDL2 
