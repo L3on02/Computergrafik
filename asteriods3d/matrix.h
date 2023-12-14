@@ -10,6 +10,9 @@ class SquareMatrix
   static_assert(N > 0u);
   std::array<Vector<FLOAT, N>, N> matrix; // values are stored in column (a vector) order
 public:
+
+  SquareMatrix();
+
   SquareMatrix(std::initializer_list<Vector<FLOAT, N>> values);
 
   // returns reference to the i-th column vector
@@ -29,7 +32,7 @@ public:
 
   //  returns the product of two square matrices
   template <class F, size_t K>
-  friend SquareMatrix<F, K> operator*(const SquareMatrix<F, K> factor1, const SquareMatrix<F, K> factor2);
+  friend SquareMatrix<F, K> operator*(const SquareMatrix<F, K> &factor1, const SquareMatrix<F, K> &factor2);
 };
 
 typedef SquareMatrix<float, 2u> sm2;

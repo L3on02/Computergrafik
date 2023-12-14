@@ -2,8 +2,17 @@
 #include <random>
 #include "math.h"
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N>::Vector(std::initializer_list<FLOAT_TYPE> values)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N>::Vector()
+{
+  for (std::size_t i = 0; i < N; ++i)
+  {
+    vector[i] = 0.0f;
+  }
+}
+
+template <class FLOAT, size_t N>
+Vector<FLOAT, N>::Vector(std::initializer_list<FLOAT> values)
 {
   auto iterator = values.begin();
   for (size_t i = 0u; i < N; i++)
@@ -19,14 +28,14 @@ Vector<FLOAT_TYPE, N>::Vector(std::initializer_list<FLOAT_TYPE> values)
   }
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N>::Vector(FLOAT_TYPE angle)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N>::Vector(FLOAT angle)
 {
-  *this = {static_cast<FLOAT_TYPE>(cos(angle)), static_cast<FLOAT_TYPE>(sin(angle))};
+  *this = {static_cast<FLOAT>(cos(angle)), static_cast<FLOAT>(sin(angle))};
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator+=(const Vector<FLOAT_TYPE, N> addend)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> &Vector<FLOAT, N>::operator+=(const Vector<FLOAT, N> addend)
 {
   for (size_t i = 0u; i < N; i++)
   {
@@ -35,8 +44,8 @@ Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator+=(const Vector<FLOAT_TYPE
   return *this;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator-=(const Vector<FLOAT_TYPE, N> minuend)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> &Vector<FLOAT, N>::operator-=(const Vector<FLOAT, N> minuend)
 {
   for (size_t i = 0u; i < N; i++)
   {
@@ -45,8 +54,8 @@ Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator-=(const Vector<FLOAT_TYPE
   return *this;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator*=(const FLOAT_TYPE factor)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> &Vector<FLOAT, N>::operator*=(const FLOAT factor)
 {
   for (size_t i = 0u; i < N; i++)
   {
@@ -55,8 +64,8 @@ Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator*=(const FLOAT_TYPE factor
   return *this;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator/=(const FLOAT_TYPE factor)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> &Vector<FLOAT, N>::operator/=(const FLOAT factor)
 {
   for (size_t i = 0u; i < N; i++)
   {
@@ -65,51 +74,51 @@ Vector<FLOAT_TYPE, N> &Vector<FLOAT_TYPE, N>::operator/=(const FLOAT_TYPE factor
   return *this;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> operator*(FLOAT_TYPE scalar, Vector<FLOAT_TYPE, N> value)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> operator*(FLOAT scalar, Vector<FLOAT, N> value)
 {
-  Vector<FLOAT_TYPE, N> scalar_product = value;
+  Vector<FLOAT, N> scalar_product = value;
 
   scalar_product *= scalar;
 
   return scalar_product;
 }
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> operator*(Vector<FLOAT_TYPE, N> value, FLOAT_TYPE scalar)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> operator*(Vector<FLOAT, N> value, FLOAT scalar)
 {
   return scalar * value;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> operator+(const Vector<FLOAT_TYPE, N> value, const Vector<FLOAT_TYPE, N> addend)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> operator+(const Vector<FLOAT, N> value, const Vector<FLOAT, N> addend)
 {
-  Vector<FLOAT_TYPE, N> sum = value;
+  Vector<FLOAT, N> sum = value;
   sum += addend;
   return sum;
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> operator-(const Vector<FLOAT_TYPE, N> value, const Vector<FLOAT_TYPE, N> minuend)
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> operator-(const Vector<FLOAT, N> value, const Vector<FLOAT, N> minuend)
 {
-  Vector<FLOAT_TYPE, N> difference = value;
+  Vector<FLOAT, N> difference = value;
   difference -= minuend;
   return difference;
 }
 
-template <class FLOAT_TYPE, size_t N>
-FLOAT_TYPE &Vector<FLOAT_TYPE, N>::operator[](std::size_t i)
+template <class FLOAT, size_t N>
+FLOAT &Vector<FLOAT, N>::operator[](std::size_t i)
 {
   return vector[i];
 }
 
-template <class FLOAT_TYPE, size_t N>
-FLOAT_TYPE Vector<FLOAT_TYPE, N>::operator[](std::size_t i) const
+template <class FLOAT, size_t N>
+FLOAT Vector<FLOAT, N>::operator[](std::size_t i) const
 {
   return vector[i];
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, 3u> Vector<FLOAT_TYPE, N>::cross_product(const Vector<FLOAT_TYPE, 3u> v) const
+template <class FLOAT, size_t N>
+Vector<FLOAT, 3u> Vector<FLOAT, N>::cross_product(const Vector<FLOAT, 3u> v) const
 {
   assert(N >= 3u);
   return {this->vector[1] * v.vector[2] - this->vector[2] * v.vector[1],
@@ -117,51 +126,51 @@ Vector<FLOAT_TYPE, 3u> Vector<FLOAT_TYPE, N>::cross_product(const Vector<FLOAT_T
           this->vector[0] * v.vector[1] - this->vector[1] * v.vector[0]};
 }
 
-template <class FLOAT_TYPE, size_t N>
-void Vector<FLOAT_TYPE, N>::normalize()
+template <class FLOAT, size_t N>
+void Vector<FLOAT, N>::normalize()
 {
   *this /= length(); //  +/- INFINITY if length is (near to) zero
 }
 
-template <class FLOAT_TYPE, size_t N>
-Vector<FLOAT_TYPE, N> Vector<FLOAT_TYPE, N>::get_reflective(Vector<FLOAT_TYPE, N> normal) const
+template <class FLOAT, size_t N>
+Vector<FLOAT, N> Vector<FLOAT, N>::get_reflective(Vector<FLOAT, N> normal) const
 {
   assert(0.99999 < normal.square_of_length() && normal.square_of_length() < 1.000001);
-  return *this - static_cast<FLOAT_TYPE>(2.0) * (*this * normal) * normal;
+  return *this - static_cast<FLOAT>(2.0) * (*this * normal) * normal;
 }
 
-template <class FLOAT_TYPE, size_t N>
-inline Vector<FLOAT_TYPE, N> Vector<FLOAT_TYPE, N>::get_randmo_unit_vector(Vector normal) const
+template <class FLOAT, size_t N>
+inline Vector<FLOAT, N> Vector<FLOAT, N>::get_randmo_unit_vector(Vector normal) const
 {
-  Vector<FLOAT_TYPE, N> random_vector;
+  Vector<FLOAT, N> random_vector;
   do
   {
-    random_vector = {static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0),
-                     static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0),
-                     static_cast<FLOAT_TYPE>(2.0) * static_cast<FLOAT_TYPE>(rand()) / static_cast<FLOAT_TYPE>(RAND_MAX) - static_cast<FLOAT_TYPE>(1.0)};
-  } while (random_vector * normal > static_cast<FLOAT_TYPE>(1.0));
+    random_vector = {static_cast<FLOAT>(2.0) * static_cast<FLOAT>(rand()) / static_cast<FLOAT>(RAND_MAX) - static_cast<FLOAT>(1.0),
+                     static_cast<FLOAT>(2.0) * static_cast<FLOAT>(rand()) / static_cast<FLOAT>(RAND_MAX) - static_cast<FLOAT>(1.0),
+                     static_cast<FLOAT>(2.0) * static_cast<FLOAT>(rand()) / static_cast<FLOAT>(RAND_MAX) - static_cast<FLOAT>(1.0)};
+  } while (random_vector * normal > static_cast<FLOAT>(1.0));
   return random_vector;
 }
 
-template <class FLOAT_TYPE, size_t N>
-FLOAT_TYPE Vector<FLOAT_TYPE, N>::angle(size_t axis_1, size_t axis_2) const
+template <class FLOAT, size_t N>
+FLOAT Vector<FLOAT, N>::angle(size_t axis_1, size_t axis_2) const
 {
-  Vector<FLOAT_TYPE, N> normalized = (1.0f / length()) * *this;
+  Vector<FLOAT, N> normalized = (1.0f / length()) * *this;
   return atan2(normalized[axis_2], normalized[axis_1]);
 }
 
 // Vektorlänge
-template <class FLOAT_TYPE, size_t N>
-inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::length() const
+template <class FLOAT, size_t N>
+inline FLOAT Vector<FLOAT, N>::length() const
 {
   return sqrt(square_of_length());
 }
 
 // Quadratische Vektorlänge
-template <class FLOAT_TYPE, size_t N>
-inline FLOAT_TYPE Vector<FLOAT_TYPE, N>::square_of_length() const
+template <class FLOAT, size_t N>
+inline FLOAT Vector<FLOAT, N>::square_of_length() const
 {
-  FLOAT_TYPE length = 0.0;
+  FLOAT length = 0.0;
   for (size_t i = 0u; i < N; i++)
   {
     length += vector[i] * vector[i];
