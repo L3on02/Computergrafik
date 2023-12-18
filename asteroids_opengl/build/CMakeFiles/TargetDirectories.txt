@@ -1,9 +1,0 @@
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/main_game.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/math_test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/matrix_test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/geometry_test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/physics_test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/game_test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/test.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/edit_cache.dir
-/home/leon/Computergrafik/asteroids_opengl/build/CMakeFiles/rebuild_cache.dir
