@@ -267,7 +267,7 @@ int main(int argc, char** argv) {
   std::vector<float> vertices = create_vertices(wi);
   init();
   create_shaders();   
-  view(vertices, 0.25f); // adapt the scale factor to the objects local coordinates
+  view(vertices, 0.025f); // adapt the scale factor to the objects local coordinates
                          // such that the scaled vertex coordinates fit into the canonical box [-1,1]^3
   exit();
   
