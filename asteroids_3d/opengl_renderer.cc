@@ -190,16 +190,15 @@ sm4 TypedBodyView::create_object_transformation(vec2 direction, float angle, flo
 {
   sm4 translation = {{1.0f, 0.0f, 0.0f, 0.0f},
                      {0.0f, 1.0f, 0.0f, 0.0f},
-                     {direction[0], direction[1], 1.0f, 0.0f},
-                     {0.0f, 0.0f, 0.0f, 1.0f}};
-
+                     {0.0f, 0.0f, 1.0f, 0.0f},
+                     {direction[0], direction[1], 0.0f, 1.0f}};
   sm4 rotation = {{std::cos(angle), std::sin(angle), 0.0f, 0.0f},
                   {-std::sin(angle), std::cos(angle), 0.0f, 0.0f},
                   {0.0f, 0.0f, 1.0f, 0.0f},
                   {0.0f, 0.0f, 0.0f, 1.0f}};
   sm4 scaling = {{scale, 0.0f, 0.0f, 0.0f},
                  {0.0f, scale, 0.0f, 0.0f},
-                 {0.0f, 0.0f, 1.0f, 0.0f},
+                 {0.0f, 0.0f, scale, 0.0f},
                  {0.0f, 0.0f, 0.0f, 1.0f}};
 
   return translation * rotation * scaling;
@@ -284,7 +283,7 @@ void OpenGLRenderer::create(Asteroid *asteroid, std::vector<std::unique_ptr<Type
   float scale = (asteroid->get_size() == 3 ? 1.0 : (asteroid->get_size() == 2 ? 0.5 : 0.25));
 
   views.push_back(std::make_unique<TypedBodyView>(asteroid, vbos[rock_vbo_index], shaderProgram, vertice_data[rock_vbo_index]->size(), scale));
-  debug(4, "create(Torpedo *) exit.");
+  debug(4, "create(Asteroid *) exit.");
 }
 
 void OpenGLRenderer::create(SpaceshipDebris *debris, std::vector<std::unique_ptr<TypedBodyView>> &views)
@@ -338,8 +337,8 @@ void OpenGLRenderer::renderFreeShips(sm4 &matrice)
   {
     sm4 translation = {{1.0f, 0.0f, 0.0f, 0.0f},
                        {0.0f, 1.0f, 0.0f, 0.0f},
-                       {position[0], position[1], 1.0f, 0.0f},
-                       {0.0f, 0.0f, 0.0f, 1.0f}};
+                       {0.0f, 0.0f, 1.0f, 0.0f},
+                       {position[0], position[1], 0.0f, 1.0f}};
     sm4 render_matrice = matrice * translation * rotation;
     spaceship_view->render(render_matrice);
     position[0] += 20.0;
@@ -365,8 +364,8 @@ void OpenGLRenderer::renderScore(sm4 &matrice)
     score /= 10;
     sm4 scale_translation = {{4.0f, 0.0f, 0.0f, 0.0f},
                              {0.0f, 4.0f, 0.0f, 0.0f},
-                             {position[0], position[1], 1.0f, 0.0f},
-                             {0.0f, 0.0f, 0.0f, 1.0f}};
+                             {0.0f, 0.0f, 1.0f, 0.0f},
+                             {position[0], position[1], 0.0f, 1.0f}};
     sm4 render_matrice = matrice * scale_translation;
     digit_views[d]->render(render_matrice);
     no_of_digits--;
@@ -505,9 +504,9 @@ void OpenGLRenderer::render()
   sm4 world_transformation =
       sm4{
           {2.0f / 1024.0f, 0.0f, 0.0f, 0.0f},
-          {0.0f, -2.0f / 768.0f, 0.0f, 0.0f}, // (negative, because we have a left handed world coord. system)
-          {0.0f, 0.0f, 1.0f, 0.0f},
-          {-1.0f, 1.0f, 0.0f, 1.0f}};
+          {0.0f, -2.0f / 768.0f, 0.0f, 0.0f},
+          {0.0f, 0.0f, 1.0 /* 2.0f / 1024.0f */, 0.0f},
+          {-1.0f, 1.0f, 0.0f/* -1.0f */, 1.0f}};
 
   sm4 world_transformation_centered = world_transformation;
 
@@ -515,6 +514,7 @@ void OpenGLRenderer::render()
   {
     Spaceship *ship = game.get_ship();
     vec2 pos_ship = ship->get_position();
+    // std::cout << "Ship x,y: " << pos_ship[0] << " " << pos_ship[1] << std::endl;
     sm4 center_transformation = sm4{
         {1.0f, 0.0f, 0.0f, 0.0f},
         {0.0f, 1.0f, 0.0f, 0.0f},
@@ -568,22 +568,7 @@ void OpenGLRenderer::render()
   debug(2, "render all views");
   for (auto &view : views)
   {
-    // Ursprüngliche Transformationen hier...
-
-    // Translationen für das Kacheln
-    for (auto offset : tile_positions)
-    {
-      sm4 tile_translation = sm4{
-          {1.0f, 0.0f, 0.0f, 0.0f},
-          {0.0f, 1.0f, 0.0f, 0.0f},
-          {offset[0], offset[1], 1.0f, 0.0f},
-          {0.0f, 0.0f, 0.0f, 1.0f}};
-      // Gesamte Transformation für die aktuelle Kachel
-      sm4 total_transformation = world_transformation_centered * tile_translation;
-
-      // Objekte zeichnen mit der totalen Transformation
-      view->render(total_transformation);
-    }
+      view->render(world_transformation_centered);
   }
 
   renderFreeShips(world_transformation);
