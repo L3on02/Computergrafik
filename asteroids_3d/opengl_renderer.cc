@@ -161,9 +161,10 @@ OpenGLView::OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_s
 
   glBindVertexArray(vao);
 
+  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
   if (is_3d)
   {
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glVertexAttribPointer(0,
                           vertexSize,                 // number of vertices (components)
@@ -189,12 +190,10 @@ OpenGLView::OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_s
                           (void *)(3 * sizeof(float))); // offset to color data in the vbo
     glEnableVertexAttribArray(2);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
   else
-  {
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-
+   {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
@@ -333,12 +332,12 @@ void OpenGLRenderer::createVbos_3d(std::vector<std::string> files)
 
 void OpenGLRenderer::create(Spaceship *ship, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
-  bool is_3d = false;
+  bool is_3d = true;
   auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
 
   debug(4, "create(Spaceship *) entry...");
 
-  views.push_back(std::make_unique<TypedBodyView>(is_3d, ship, vbos[0], shaderProg, vertice_data[0]->size(), 1.0f, GL_LINE_LOOP,
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, ship, vbos_3d[1], shaderProg, objects[0].size()/9, 5.0f, GL_TRIANGLES,
                                                   [ship]() -> bool
                                                   { return !ship->is_in_hyperspace(); }) // only show ship if outside hyperspace
   );
@@ -352,7 +351,7 @@ void OpenGLRenderer::create(Spaceship *ship, std::vector<std::unique_ptr<TypedBo
 
 void OpenGLRenderer::create(Saucer *saucer, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
-  bool is_3d = false;
+  bool is_3d = true;
   auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
 
   debug(4, "create(Saucer *) entry...");
@@ -361,17 +360,19 @@ void OpenGLRenderer::create(Saucer *saucer, std::vector<std::unique_ptr<TypedBod
   {
     scale = 0.25;
   }
-  views.push_back(std::make_unique<TypedBodyView>(is_3d, saucer, vbos[3], shaderProg, vertice_data[3]->size(), scale));
+  //views.push_back(std::make_unique<TypedBodyView>(is_3d, saucer, vbos[3], shaderProg, vertice_data[3]->size(), scale));
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, saucer, vbos_3d[3], shaderProg, objects[0].size()/9, 20.0f, GL_TRIANGLES));
   debug(4, "create(Saucer *) exit.");
 }
 
 void OpenGLRenderer::create(Torpedo *torpedo, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
-  bool is_3d = false;
+  bool is_3d = true;
   auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
 
   debug(4, "create(Torpedo *) entry...");
-  views.push_back(std::make_unique<TypedBodyView>(is_3d, torpedo, vbos[2], shaderProg, vertice_data[2]->size(), 1.0f));
+  //views.push_back(std::make_unique<TypedBodyView>(is_3d, torpedo, vbos[2], shaderProg, vertice_data[2]->size(), 1.0f));
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, torpedo, vbos_3d[2], shaderProg, objects[0].size()/9, 2.0f, GL_TRIANGLES));
   debug(4, "create(Torpedo *) exit.");
 }
 
@@ -381,9 +382,9 @@ void OpenGLRenderer::create(Asteroid *asteroid, std::vector<std::unique_ptr<Type
   auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
 
   debug(4, "create(Asteroid *) entry...");
-  //GLuint rock_vbo_index = 4 + asteroid->get_rock_type();
+  ///GLuint rock_vbo_index = 4 + asteroid->get_rock_type();
 
-  float scale = (asteroid->get_size() == 3 ? 1.0 : (asteroid->get_size() == 2 ? 0.5 : 0.25));
+  float scale = (asteroid->get_size() == 3 ? 1.0 : (asteroid->get_size() == 2 ? 0.5 : 0.25)) * 30;
 
   //views.push_back(std::make_unique<TypedBodyView>(is_3d, asteroid, vbos[rock_vbo_index], shaderProg, vertice_data[rock_vbo_index]->size(), scale));
   std::cout << "Vertex Size: " << objects[0].size() << std::endl;
@@ -677,7 +678,7 @@ void OpenGLRenderer::render()
           {2.0f / 1024.0f, 0.0f, 0.0f, 0.0f},
           {0.0f, -2.0f / 768.0f, 0.0f, 0.0f},
           {0.0f, 0.0f, 2.0f / 1024.0f, 0.0f},
-          {-1.0f, 1.0f, 0.0f /* eig -1.0f hier*/, 1.0f}};
+          {-1.0f, 1.0f, -1.0f, 1.0f}};
 
   sm4 world_transformation_centered = world_transformation;
 
@@ -685,14 +686,22 @@ void OpenGLRenderer::render()
   {
     Spaceship *ship = game.get_ship();
     vec2 pos_ship = ship->get_position();
-    // std::cout << "Ship x,y: " << pos_ship[0] << " " << pos_ship[1] << std::endl;
-    sm4 center_transformation = sm4{
+   
+    /* sm4 center_transformation = sm4{
         {1.0f, 0.0f, 0.0f, 0.0f},
         {0.0f, 1.0f, 0.0f, 0.0f},
         {512.0f - pos_ship[0], 384.0f - pos_ship[1], 2.0f / 1024.0f, 0.0f},
         {-1.0f, 1.0f, -1.0f, 1.0f}};
 
-    world_transformation_centered = world_transformation * center_transformation;
+    world_transformation_centered = world_transformation * center_transformation; */
+
+    sm4 center_ship_transform {
+      {1.0f, 0.0f, 0.0f, 0.0f},
+      {0.0f, 1.0f, 0.0f, 0.0f},
+      {0.0f, 0.0f, 1.0f, 0.0f},
+      {-2 * (pos_ship[0] - 512.f) / 1024.0f, 2 * (pos_ship[1] - 368.f) / 768.0f, 0.0f, 1.0f}
+    };
+    world_transformation_centered = world_transformation * center_ship_transform;
   }
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
