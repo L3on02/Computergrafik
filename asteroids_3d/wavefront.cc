@@ -8,11 +8,11 @@ WavefrontImporter::WavefrontImporter(std::istream & in)
   : counter_clock_wise(true), input_line(0u), in(in), current_material(nullptr) { }
 
 
-void WavefrontImporter::warning(std::string warning) {
+void WavefrontImporter::warn(std::string warning) {
   std::cerr << input_line << ":warning: " << warning << std::endl;
 }
 
-void WavefrontImporter::error(std::string error) {
+void WavefrontImporter::err(std::string error) {
   std::cerr << input_line << ":error:  " << error << std::endl;
 }
 
@@ -41,7 +41,7 @@ float WavefrontImporter::parse_float(std::istream & in) {
   
   in >> f;
   if (in.fail()) {
-    error("fail to read in a float");
+    err("fail to read in a float");
   }
   return f;
 }
@@ -62,14 +62,14 @@ void WavefrontImporter::parse_vertex_data() {
   char c = in.peek();
   
   switch (c) {
-  case 't': warning("texture vertices found and ignored (not supported)");
+  case 't': warn("texture vertices found and ignored (not supported)");
             in >> c;
             break;    //vt Texture vertices (IGNORED)
   case 'n': in >> c;
             floats = parse_floats(in);  //vn Vertex normals
             normals.push_back( {floats[0], floats[1], floats[2]} );
             break;
-  case 'p': warning("parameter space vertices found and ignored (not supported)");
+  case 'p': warn("parameter space vertices found and ignored (not supported)");
             in >> c;
             break;    //vp Parameter space vertices (IGNORED)
   default:  floats = parse_floats(in); //v Geometric vertices
@@ -99,7 +99,7 @@ void WavefrontImporter::parse_face() {
   if (in.peek() == '/') { in.ignore(); in >> vn3;}
  
   if (vn1 == 0) {
-    warning("no normals given");
+    warn("no normals given");
     // calculate normal not done
     Normal normal = {1.0f, 1.0f, 1.0f};
     face.reference_groups.push_back( { vertices.at(v1 - 1), normal } );
@@ -113,7 +113,7 @@ void WavefrontImporter::parse_face() {
   if (current_material != nullptr) {
     face.material = current_material;
   } else {
-    warning("no material set for face");
+    warn("no material set for face");
   }
   faces.push_back( face );
 }
@@ -123,13 +123,13 @@ void WavefrontImporter::parse_use_material() {
   in >> s;
   if (s == "semtl") {
     in >> s;
-    std::erase_if(s, [](char c) { return isspace(c); });
+    erase_if(s, [](char c) { return isspace(c); });
     if (materials.find(s) != materials.end() ) {
       Material * new_material = &materials.at(s);
       current_material = new_material;
     }
   } else {
-    warning("usemtl expected");
+    warn("usemtl expected");
   }
 }
 
@@ -141,7 +141,7 @@ void WavefrontImporter::parse_material_library() {
     std::fstream fs(s);  
     parse_material(fs); 
   } else {
-    warning("mtllib expected");
+    warn("mtllib expected");
   }
 }
 
@@ -180,7 +180,7 @@ void WavefrontImporter::parse_material(std::istream & in) {
         
         materials[material_name] = { color };
       } else {
-        error("not enough float values for a RGB-color");
+        err("not enough float values for a RGB-color");
       }
     }
     in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');

@@ -2,6 +2,8 @@
 #include <cassert>
 #include <span>
 #include <utility>
+#include <fstream>
+#include "wavefront.h"
 
 // geometric data as in original game and game coordinates
 std::vector<vec2> spaceship = {
@@ -146,20 +148,62 @@ std::vector<std::vector<vec2> *> vertice_data = {
     &digit_0, &digit_1, &digit_2, &digit_3, &digit_4, &digit_5, &digit_6, &digit_7, &digit_8, &digit_9};
 
 // class OpenGLView
+// Constants for attribute sizes and offsets
+const GLint vertexSize = 3;
+const GLint colorSize = 3;
+const GLint normalSize = 3;
+const GLsizei stride = 9 * sizeof(float);
 
-OpenGLView::OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_size, GLuint mode)
+OpenGLView::OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_size, GLuint mode, bool is_3d)
     : shaderProgram(shaderProgram), vertices_size(vertices_size), mode(mode)
 {
   glGenVertexArrays(1, &vao);
 
   glBindVertexArray(vao);
 
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
+  if (is_3d)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,
+                          vertexSize,                 // number of vertices (components)
+                          GL_FLOAT,          //
+                          GL_FALSE,          // no normalization
+                          stride, // no of bytes between each vertice (component)
+                          (void *)0);
+    glEnableVertexAttribArray(0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribPointer(1,
+                          colorSize,                            // no vertices (components)
+                          GL_FLOAT,                     //
+                          GL_FALSE,                     // no normalization
+                          stride,            // no of bytes between each color (component)
+                          (void *)(6 * sizeof(float))); // offset to color data in the vbo
+    glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2,
+                          normalSize,                            // no vertices (components)
+                          GL_FLOAT,                     //
+                          GL_FALSE,                     // no normalization
+                          stride,            // no of bytes between each color (component)
+                          (void *)(3 * sizeof(float))); // offset to color data in the vbo
+    glEnableVertexAttribArray(2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
+  else
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
+  // Check for OpenGL errors
+  GLenum error = glGetError();
+  if (error != GL_NO_ERROR)
+    std::cerr << "OpenGL error: " << error << std::endl;
 }
 
 OpenGLView::~OpenGLView()
@@ -172,7 +216,7 @@ void OpenGLView::render(SquareMatrix<float, 4> &matrice)
   debug(2, "render() entry...");
   glBindVertexArray(vao);
   glUseProgram(shaderProgram);
-  unsigned int transformLoc = glGetUniformLocation(shaderProgram, "transform");
+  unsigned int transformLoc = glGetUniformLocation(shaderProgram, "model");
   glUniformMatrix4fv(transformLoc, 1, GL_FALSE, &matrice[0][0]);
   glDrawArrays(mode, 0, vertices_size);
   debug(2, "render() exit.");
@@ -180,9 +224,9 @@ void OpenGLView::render(SquareMatrix<float, 4> &matrice)
 
 // class TypedBodyView
 
-TypedBodyView::TypedBodyView(TypedBody *typed_body, GLuint vbo, unsigned int shaderProgram, size_t vertices_size, float scale, GLuint mode,
+TypedBodyView::TypedBodyView(bool is_3d, TypedBody *typed_body, GLuint vbo, unsigned int shaderProgram, size_t vertices_size, float scale, GLuint mode,
                              std::function<bool()> draw, std::function<void(TypedBodyView *)> modify)
-    : OpenGLView(vbo, shaderProgram, vertices_size, mode), typed_body(typed_body), scale(scale), draw(draw), modify(modify)
+    : OpenGLView(vbo, shaderProgram, vertices_size, mode, is_3d), typed_body(typed_body), scale(scale), draw(draw), modify(modify)
 {
 }
 
@@ -240,15 +284,65 @@ void OpenGLRenderer::createVbos()
   }
 }
 
+
+std::vector<float> create_vertices(WavefrontImporter & wi) {
+  std::vector<float> vertices;
+  Material default_material = {{1.0f, 1.0f, 1.0f}};
+  for (Face face : wi.get_faces() ) {
+    for (ReferenceGroup group : face.reference_groups ) {
+      for (size_t i = 0; i < 3; i++) {
+        vertices.push_back( group.vertice[i]);
+      }
+      for (size_t i = 0; i < 3; i++) {
+        vertices.push_back( group.normal[i] );
+      }
+      if (face.material == nullptr) face.material = &default_material;
+      for (size_t i = 0; i < 3; i++) {
+        vertices.push_back( face.material->ambient[i]);
+      }
+    } 
+  }
+  return vertices;
+}
+
+
+// import given files and create vbos for each object
+void OpenGLRenderer::createVbos_3d(std::vector<std::string> files)
+{
+  std::cout << "Creating 3D objects..." << std::endl;
+
+  for (std::string file : files)
+  {
+    std::fstream in(file);
+    WavefrontImporter wi(in);
+    wi.parse();
+    std::vector<float> vertices = create_vertices(wi);
+    objects.push_back(vertices);
+    std::cout << "Created object from " << file << " with " << vertices.size() / 9 << " vertices." << std::endl;
+  }
+
+  vbos_3d = new GLuint[objects.size()];
+  glGenBuffers(objects.size(), vbos_3d);
+
+  for (size_t i = 0; i < objects.size(); i++)
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vbos_3d[i]);
+    glBufferData(GL_ARRAY_BUFFER, objects[i].size() * sizeof(float), objects[i].data(), GL_STATIC_DRAW);
+  }
+}
+
 void OpenGLRenderer::create(Spaceship *ship, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(Spaceship *) entry...");
 
-  views.push_back(std::make_unique<TypedBodyView>(ship, vbos[0], shaderProgram, vertice_data[0]->size(), 1.0f, GL_LINE_LOOP,
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, ship, vbos[0], shaderProg, vertice_data[0]->size(), 1.0f, GL_LINE_LOOP,
                                                   [ship]() -> bool
                                                   { return !ship->is_in_hyperspace(); }) // only show ship if outside hyperspace
   );
-  views.push_back(std::make_unique<TypedBodyView>(ship, vbos[1], shaderProgram, vertice_data[1]->size(), 1.0f, GL_LINE_LOOP,
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, ship, vbos[1], shaderProg, vertice_data[1]->size(), 1.0f, GL_LINE_LOOP,
                                                   [ship]() -> bool
                                                   { return !ship->is_in_hyperspace() && ship->is_accelerating(); }) // only show flame if accelerating
   );
@@ -258,39 +352,53 @@ void OpenGLRenderer::create(Spaceship *ship, std::vector<std::unique_ptr<TypedBo
 
 void OpenGLRenderer::create(Saucer *saucer, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(Saucer *) entry...");
   float scale = 0.5;
   if (saucer->get_size() == 0)
   {
     scale = 0.25;
   }
-  views.push_back(std::make_unique<TypedBodyView>(saucer, vbos[3], shaderProgram, vertice_data[3]->size(), scale));
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, saucer, vbos[3], shaderProg, vertice_data[3]->size(), scale));
   debug(4, "create(Saucer *) exit.");
 }
 
 void OpenGLRenderer::create(Torpedo *torpedo, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(Torpedo *) entry...");
-  views.push_back(std::make_unique<TypedBodyView>(torpedo, vbos[2], shaderProgram, vertice_data[2]->size(), 1.0f));
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, torpedo, vbos[2], shaderProg, vertice_data[2]->size(), 1.0f));
   debug(4, "create(Torpedo *) exit.");
 }
 
 void OpenGLRenderer::create(Asteroid *asteroid, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = true;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(Asteroid *) entry...");
-  GLuint rock_vbo_index = 4 + asteroid->get_rock_type();
+  //GLuint rock_vbo_index = 4 + asteroid->get_rock_type();
 
   float scale = (asteroid->get_size() == 3 ? 1.0 : (asteroid->get_size() == 2 ? 0.5 : 0.25));
 
-  views.push_back(std::make_unique<TypedBodyView>(asteroid, vbos[rock_vbo_index], shaderProgram, vertice_data[rock_vbo_index]->size(), scale));
+  //views.push_back(std::make_unique<TypedBodyView>(is_3d, asteroid, vbos[rock_vbo_index], shaderProg, vertice_data[rock_vbo_index]->size(), scale));
+  std::cout << "Vertex Size: " << objects[0].size() << std::endl;
+  views.push_back(std::make_unique<TypedBodyView>(is_3d, asteroid, vbos_3d[0], shaderProg, objects[0].size()/9, scale, GL_TRIANGLES));
   debug(4, "create(Asteroid *) exit.");
 }
 
 void OpenGLRenderer::create(SpaceshipDebris *debris, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(SpaceshipDebris *) entry...");
   views.push_back(std::make_unique<TypedBodyView>(
-      debris, vbos[10], shaderProgram, vertice_data[10]->size(), 0.1f, GL_POINTS,
+      is_3d, debris, vbos[10], shaderProg, vertice_data[10]->size(), 0.1f, GL_POINTS,
       []() -> bool
       { return true; },
       [debris](TypedBodyView *view) -> void
@@ -300,9 +408,12 @@ void OpenGLRenderer::create(SpaceshipDebris *debris, std::vector<std::unique_ptr
 
 void OpenGLRenderer::create(Debris *debris, std::vector<std::unique_ptr<TypedBodyView>> &views)
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   debug(4, "create(Debris *) entry...");
   views.push_back(std::make_unique<TypedBodyView>(
-      debris, vbos[10], shaderProgram, vertice_data[10]->size(), 0.1f, GL_POINTS,
+      is_3d, debris, vbos[10], shaderProg, vertice_data[10]->size(), 0.1f, GL_POINTS,
       []() -> bool
       { return true; },
       [debris](TypedBodyView *view) -> void
@@ -312,14 +423,20 @@ void OpenGLRenderer::create(Debris *debris, std::vector<std::unique_ptr<TypedBod
 
 void OpenGLRenderer::createSpaceShipView()
 {
-  spaceship_view = std::make_unique<OpenGLView>(vbos[0], shaderProgram, vertice_data[0]->size(), GL_LINE_LOOP);
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
+  spaceship_view = std::make_unique<OpenGLView>(vbos[0], shaderProg, vertice_data[0]->size(), GL_LINE_LOOP);
 }
 
 void OpenGLRenderer::createDigitViews()
 {
+  bool is_3d = false;
+  auto shaderProg = is_3d ? shaderProgram3D : shaderProgram2D;
+
   for (size_t i = 0; i < 10; i++)
   {
-    digit_views[i] = std::make_unique<OpenGLView>(vbos[11 + i], shaderProgram, vertice_data[11 + i]->size(), GL_LINE_STRIP);
+    digit_views[i] = std::make_unique<OpenGLView>(vbos[11 + i], shaderProg, vertice_data[11 + i]->size(), GL_LINE_STRIP);
   }
 }
 
@@ -374,15 +491,47 @@ void OpenGLRenderer::renderScore(sm4 &matrice)
   } while (no_of_digits > 0);
 }
 
+void compile_shader(GLint shader, const char *source)
+{
+  glShaderSource(shader, 1, &source, NULL);
+  glCompileShader(shader);
+
+  GLint status;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+  if (status == GL_FALSE)
+  {
+    std::cerr << " Shader did not compile." << std::endl;
+    char log[512];
+    glGetShaderInfoLog(shader, 512, NULL, log);
+    std::cerr << log << std::endl;
+    throw EXIT_FAILURE;
+  }
+}
+
+void check_link_status(GLint shader_program)
+{
+  GLint status;
+  glGetProgramiv(shader_program, GL_LINK_STATUS, &status);
+  if (status == GL_FALSE)
+  {
+    GLint length;
+    glGetProgramiv(shader_program, GL_INFO_LOG_LENGTH, &length);
+    GLchar *log = new char[length + 1];
+    glGetProgramInfoLog(shader_program, length, &length, &log[0]);
+    std::cerr << log << std::endl;
+    throw EXIT_FAILURE;
+  }
+}
+
 void OpenGLRenderer::create_shader_programs()
 {
 
   static const char *vertexShaderSource = "#version 330 core\n"
                                           "layout (location = 0) in vec2 p;\n"
-                                          "uniform mat4 transform;\n"
+                                          "uniform mat4 model;\n"
                                           "void main()\n"
                                           "{\n"
-                                          "   gl_Position = transform * vec4(p, 1.0, 1.0);\n"
+                                          "   gl_Position = model * vec4(p, 1.0, 1.0);\n"
                                           "}\0";
   static const char *fragmentShaderSource = "#version 330 core\n"
                                             "out vec4 FragColor;\n"
@@ -393,41 +542,60 @@ void OpenGLRenderer::create_shader_programs()
 
   // build and compile vertex shader
   unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-  glCompileShader(vertexShader);
-  // check for shader compile errors
-  int success;
-  char infoLog[512];
-  glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-    error(std::string("vertex shader compilation failed") + infoLog);
-  }
+  compile_shader(vertexShader, vertexShaderSource);
+
   // build and compiler fragment shader
   unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-  glCompileShader(fragmentShader);
-  // check for shader compile errors
-  glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-  if (!success)
-  {
-    glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-    error(std::string("fragment shader compilation failed") + infoLog);
-  }
+  compile_shader(fragmentShader, fragmentShaderSource);
 
   // link both shaders
-  shaderProgram = glCreateProgram();
-  glAttachShader(shaderProgram, vertexShader);
-  glAttachShader(shaderProgram, fragmentShader);
-  glLinkProgram(shaderProgram);
+  shaderProgram2D = glCreateProgram();
+  glAttachShader(shaderProgram2D, vertexShader);
+  glAttachShader(shaderProgram2D, fragmentShader);
+  glLinkProgram(shaderProgram2D);
   // check for linking errors
-  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-  if (!success)
-  {
-    glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-    error(std::string("linking shader programs failed") + infoLog);
-  }
+  check_link_status(shaderProgram2D);
+}
+
+void OpenGLRenderer::create_shader_programs_3d()
+{
+  const char *vertexShaderSource = "#version 330 core\n"
+                                   "layout (location = 0) in vec3 position;\n"
+                                   "layout (location = 1) in vec3 incolor;\n"
+                                   "layout (location = 2) in vec3 innormal;\n"
+                                   "out vec3 color;\n"
+                                   "out vec4 normal;\n"
+                                   "uniform mat4 model;\n"
+                                   "void main()\n"
+                                   "{\n"
+                                   "gl_Position = model * vec4(position, 1.0);\n"
+                                   "color = incolor;\n"
+                                   "normal = normalize( model * vec4(innormal, 1.0));\n"
+                                   "}\0";
+
+  // direction to light source is hard coded: (0,1,-4)
+  // Lambertian shading used for vertices of triangle
+  // cause during rasterization colors are interpolated, the result is Gouraud-Shading
+  const char *fragmentShaderSource = "#version 330 core\n"
+                                     "out vec4 outColor;\n"
+                                     "in vec3 color;\n"
+                                     "in vec4 normal;\n"
+                                     "void main () {\n"
+                                     "  outColor = vec4(color * (0.3 + 0.7 * max(0.0, dot(normal, normalize( vec4(0.0, 1.0, -4.0, 0.0))))) , 1.0);\n"
+                                     "}\n\0";
+
+  GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+  compile_shader(vertexShader, vertexShaderSource);
+
+  GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+  compile_shader(fragmentShader, fragmentShaderSource);
+
+  shaderProgram3D = glCreateProgram();
+  glAttachShader(shaderProgram3D, vertexShader);
+  glAttachShader(shaderProgram3D, fragmentShader);
+  glBindFragDataLocation(shaderProgram3D, 0, "outColor");
+  glLinkProgram(shaderProgram3D);
+  check_link_status(shaderProgram3D);
 }
 
 bool OpenGLRenderer::init()
@@ -460,13 +628,16 @@ bool OpenGLRenderer::init()
         error("Could not initialize Glew. Glew error message: ");
         error(glewGetErrorString(err));
       }
+      glEnable(GL_DEPTH_TEST); // enable depth-testing
       debug(1, "Using GLEW Version: ");
       debug(1, glewGetString(GLEW_VERSION));
 
       SDL_GL_SetSwapInterval(1);
 
       create_shader_programs();
+      create_shader_programs_3d();
       createVbos();
+      createVbos_3d(std::vector<std::string>{"asteroid.obj", "spaceship.obj", "torpedo.obj", "saucer.obj"});
       createSpaceShipView();
       createDigitViews();
       return true;
@@ -505,8 +676,8 @@ void OpenGLRenderer::render()
       sm4{
           {2.0f / 1024.0f, 0.0f, 0.0f, 0.0f},
           {0.0f, -2.0f / 768.0f, 0.0f, 0.0f},
-          {0.0f, 0.0f, 1.0 /* 2.0f / 1024.0f */, 0.0f},
-          {-1.0f, 1.0f, 0.0f/* -1.0f */, 1.0f}};
+          {0.0f, 0.0f, 2.0f / 1024.0f, 0.0f},
+          {-1.0f, 1.0f, 0.0f /* eig -1.0f hier*/, 1.0f}};
 
   sm4 world_transformation_centered = world_transformation;
 
@@ -525,12 +696,12 @@ void OpenGLRenderer::render()
   }
 
   glClearColor(0.0, 0.0, 0.0, 1.0);
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   debug(2, "remove views for deleted objects");
 
   // remove all views for typed bodies that have to be deleted
-  erase_if(views, [](std::unique_ptr<TypedBodyView> &view)
+  std::erase_if(views, [](std::unique_ptr<TypedBodyView> &view)
            { return view->get_typed_body()->is_marked_for_deletion(); });
 
   auto new_bodies = game.get_physics().get_recently_added_bodies();
@@ -568,11 +739,13 @@ void OpenGLRenderer::render()
   debug(2, "render all views");
   for (auto &view : views)
   {
-      view->render(world_transformation_centered);
+    view->render(world_transformation_centered);
   }
 
+  glDisable(GL_DEPTH_TEST);
   renderFreeShips(world_transformation);
   renderScore(world_transformation);
+  glEnable(GL_DEPTH_TEST);
 
   SDL_GL_SwapWindow(window);
   debug(2, "render() exit.");

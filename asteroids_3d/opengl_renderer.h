@@ -23,7 +23,7 @@ protected:
   GLuint mode;
   GLuint vao;
 public:
-  OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_size, GLuint mode = GL_LINE_LOOP);  
+  OpenGLView(GLuint vbo, unsigned int shaderProgram, size_t vertices_size, GLuint mode = GL_LINE_LOOP, bool is_3d = false);  
 
   ~OpenGLView();
     
@@ -38,7 +38,7 @@ class TypedBodyView : public OpenGLView {
   std::function<void(TypedBodyView *)> modify; // a callback which my change this TypedBodyView, for instance, for animations
   sm4 create_object_transformation(vec2 direction, float angle, float scale);
 public:
-  TypedBodyView(TypedBody * typed_body, GLuint vbo, unsigned int shaderProgram, size_t vertices_size, float scale = 1.0f, GLuint mode = GL_LINE_LOOP,
+  TypedBodyView(bool is_3d, TypedBody * typed_body, GLuint vbo, unsigned int shaderProgram, size_t vertices_size, float scale = 1.0f, GLuint mode = GL_LINE_LOOP,
                std::function<bool()> draw = []() -> bool {return true;},
                std::function<void(TypedBodyView *)> modify = [](TypedBodyView *) -> void {});
 
@@ -63,12 +63,16 @@ class OpenGLRenderer : public Renderer {
   int window_height;
   SDL_Window * window = nullptr;
   SDL_GLContext context;
-  unsigned int shaderProgram;
+  unsigned int shaderProgram2D;
+  unsigned int shaderProgram3D;
   std::vector< std::unique_ptr<TypedBodyView > > views;
   GLuint * vbos;
+  GLuint * vbos_3d;
+  std::vector<std::vector<float>> objects;
   std::unique_ptr<OpenGLView> spaceship_view;
   std::array< std::unique_ptr<OpenGLView>, 10> digit_views;
   void createVbos();
+  void createVbos_3d(std::vector<std::string> files);
   void createSpaceShipView();
   void createDigitViews();
   void create(Spaceship * ship, std::vector< std::unique_ptr<TypedBodyView> > & views); 
@@ -80,6 +84,7 @@ class OpenGLRenderer : public Renderer {
   void renderFreeShips(sm4 & matrice);
   void renderScore(sm4 & matrice);
   void create_shader_programs();
+  void create_shader_programs_3d();
 public:
   OpenGLRenderer(Game & game, std::string title, int window_width = 1024, int window_height = 768)
     : Renderer(game), title(title), window_width(window_width), window_height(window_height) { }

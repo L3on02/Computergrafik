@@ -213,7 +213,7 @@ void view(std::vector<float> & vertices, float scale) {
     glClear ( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     GLint uniformView = glGetUniformLocation (shaderProgram, "model");
-    glUniformMatrix4fv(uniformView, 1 , GL_FALSE , glm::value_ptr(model) ) ;  
+    glUniformMatrix4fv(uniformView, 1 , GL_FALSE , glm::value_ptr(model) );
     glDrawArrays(GL_TRIANGLES, 0, vertices.size() / 9);
     swap_window();
   
@@ -265,6 +265,7 @@ int main(int argc, char** argv) {
   WavefrontImporter wi( in );
   wi.parse();
   std::vector<float> vertices = create_vertices(wi);
+  std::cout << "Number of vertices: " << vertices.size() / 9 << std::endl;
   init();
   create_shaders();   
   view(vertices, 0.025f); // adapt the scale factor to the objects local coordinates

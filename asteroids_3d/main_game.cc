@@ -28,8 +28,7 @@ int main(void)
   Timer timer;
   Game game{};
   SDL2GameController controller = SDL2GameController{game};
-  // std::unique_ptr<Renderer> renderer = std::make_unique<SDL2Renderer>(game, "Asteroids");
-  std::unique_ptr<Renderer> renderer = std::make_unique<OpenGLRenderer>(game, "Asteroids" /*, 1024, 768*/); // change resolution here
+  std::unique_ptr<Renderer> renderer = std::make_unique<OpenGLRenderer>(game, "Asteroids" , 1024, 768); // change resolution here
 
   renderer->init();
   do
