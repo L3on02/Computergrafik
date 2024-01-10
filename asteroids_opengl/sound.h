@@ -32,16 +32,16 @@ public:
 };
 
 class Sound {
-  const char * file_names[10] = {"sound/fire.wav",
-                                 "sound/extraShip.wav",
-                                 "sound/bangSmall.wav",
-                                 "sound/bangMedium.wav",
-                                 "sound/bangLarge.wav",
-                                 "sound/beat1.wav",
-                                 "sound/beat2.wav",
-                                 "sound/saucerSmall.wav",
-                                 "sound/saucerBig.wav",
-                                 "sound/thrust.wav" };
+  const char * file_names[10] = {"../sound/fire.wav",
+                                 "../sound/extraShip.wav",
+                                 "../sound/bangSmall.wav",
+                                 "../sound/bangMedium.wav",
+                                 "../sound/bangLarge.wav",
+                                 "../sound/beat1.wav",
+                                 "../sound/beat2.wav",
+                                 "../sound/saucerSmall.wav",
+                                 "../sound/saucerBig.wav",
+                                 "../sound/thrust.wav" };
   Mix_Chunk * sounds[10];
   std::vector<Effect *> effects;
 public:
